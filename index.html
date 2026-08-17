@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGCSE 0523 词汇盲盒</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 30px 20px;
+        }
+        h1 {
+            color: #1a365d;
+            margin-bottom: 20px;
+        }
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 500px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .progress {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        /* 英文提示区域 */
+        .hint-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e2e8f0;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .hint-btn {
+            background: none;
+            border: none;
+            color: #2b6cb0;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1rem;
+            padding: 0;
+        }
+        .hint-btn:hover {
+            color: #2c5282;
+        }
+        .hint-text {
+            font-size: 1.1rem;
+            color: #e53e3e;
+            font-weight: bold;
+            display: none; /* 默认隐藏 */
+        }
+        /* 游戏主体区域 */
+        .word-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .char-box {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            background-color: white;
+            border: 3px solid #cbd5e0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        /* 底层汉字 */
+        .char-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 180px;
+            font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
+            color: #2d3748;
+            z-index: 1;
+            user-select: none;
+        }
+        /* 表层网格 */
+        .grid-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            z-index: 2;
+        }
+        .grid-block {
+            background-color: #3182ce;
+            border: 1px solid rgba(255,255,255,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            user-select: none;
+        }
+        .grid-block:hover {
+            background-color: #2b6cb0;
+        }
+        .grid-block.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* 底部导航 */
+        .nav-controls {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-btn {
+            padding: 10px 24px;
+            font-size: 1.1rem;
+            color: white;
+            background-color: #48bb78;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .nav-btn:hover {
+            background-color: #38a169;
+        }
+        .nav-btn:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📝 核心词汇盲盒</h1>
+
+    <div class="header-controls">
+        <div class="progress" id="progress-text">词语 1 / 6</div>
+        <div class="hint-container">
+            <button class="hint-btn" onclick="toggleHint()">
+                👁️ 英文提示
+            </button>
+            <span class="hint-text" id="hint-display">sign up</span>
+        </div>
+    </div>
+
+    <!-- 显示双字的容器 -->
+    <div class="word-container" id="word-container">
+        <!-- 第一个字 -->
+        <div class="char-box">
+            <div class="char-display" id="char1">报</div>
+            <div class="grid-container" id="grid1"></div>
+        </div>
+        <!-- 第二个字 -->
+        <div class="char-box">
+            <div class="char-display" id="char2">名</div>
+            <div class="grid-container" id="grid2"></div>
+        </div>
+    </div>
+
+    <div class="nav-controls">
+        <button class="nav-btn" id="prev-btn" onclick="changeWord(-1)">⬅️ 上一个</button>
+        <button class="nav-btn" id="next-btn" onclick="changeWord(1)">下一个 ➡️</button>
+    </div>
+
+    <script>
+        // 词汇数据源
+        const vocabList = [
+            { c1: '报', c2: '名', hint: 'sign up' },
+            { c1: '体', c2: '验', hint: 'experience' },
+            { c1: '乘', c2: '坐', hint: 'take (a ride)' },
+            { c1: '全', c2: '球', hint: 'global' },
+            { c1: '首', c2: '次', hint: 'first time' },
+            { c1: '人', c2: '数', hint: 'number of people' }
+        ];
+
+        let currentIndex = 0;
+        let hintVisible = false;
+
+        // 生成数字方块
+        function generateBlocks(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 1; i <= 16; i++) {
+                const block = document.createElement('div');
+                block.className = 'grid-block';
+                block.innerText = i; // 方块显示数字
+                block.onclick = function() {
+                    this.classList.add('hidden'); // 点击隐藏
+                };
+                container.appendChild(block);
+            }
+        }
+
+        // 渲染当前词汇
+        function renderWord() {
+            const currentVocab = vocabList[currentIndex];
+            
+            // 更新汉字
+            document.getElementById('char1').innerText = currentVocab.c1;
+            document.getElementById('char2').innerText = currentVocab.c2;
+            
+            // 更新提示词，但保持当前的可见状态
+            document.getElementById('hint-display').innerText = currentVocab.hint;
+            
+            // 更新进度
+            document.getElementById('progress-text').innerText = `词语 ${currentIndex + 1} / ${vocabList.length}`;
+
+            // 重置两个字的遮罩方块
+            generateBlocks('grid1');
+            generateBlocks('grid2');
+
+            // 隐藏提示（每次切词默认隐藏）
+            hintVisible = false;
+            document.getElementById('hint-display').style.display = 'none';
+
+            // 更新按钮状态
+            document.getElementById('prev-btn').disabled = (currentIndex === 0);
+            document.getElementById('next-btn').disabled = (currentIndex === vocabList.length - 1);
+        }
+
+        // 切换上一个/下一个词汇
+        function changeWord(direction) {
+            currentIndex += direction;
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex >= vocabList.length) currentIndex = vocabList.length - 1;
+            renderWord();
+        }
+
+        // 切换提示词的显示/隐藏
+        function toggleHint() {
+            hintVisible = !hintVisible;
+            document.getElementById('hint-display').style.display = hintVisible ? 'block' : 'none';
+        }
+
+        // 页面加载时初始化
+        window.onload = renderWord;
+    </script>
+
+</body>
+</html>
