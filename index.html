@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IGCSE 0523 词汇盲盒</title>
+    <title>Character Decoder</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -18,11 +18,13 @@
         h1 {
             color: #1a365d;
             margin-bottom: 20px;
+            font-size: 2.2rem;
         }
         .header-controls {
             display: flex;
             justify-content: space-between;
-            width: 500px;
+            width: 100%;
+            max-width: 800px;
             align-items: center;
             margin-bottom: 20px;
         }
@@ -30,6 +32,10 @@
             font-size: 1.1rem;
             font-weight: bold;
             color: #4a5568;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         /* 英文提示区域 */
         .hint-container {
@@ -39,6 +45,7 @@
             background: #e2e8f0;
             padding: 8px 15px;
             border-radius: 20px;
+            min-height: 24px;
         }
         .hint-btn {
             background: none;
@@ -56,21 +63,24 @@
             color: #2c5282;
         }
         .hint-text {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: #e53e3e;
             font-weight: bold;
-            display: none; /* 默认隐藏 */
+            display: none;
         }
         /* 游戏主体区域 */
         .word-container {
             display: flex;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 20px;
+            margin-bottom: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 900px;
         }
         .char-box {
             position: relative;
-            width: 240px;
-            height: 240px;
+            width: 220px;
+            height: 220px;
             background-color: white;
             border: 3px solid #cbd5e0;
             border-radius: 12px;
@@ -87,7 +97,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 180px;
+            font-size: 160px;
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
             color: #2d3748;
             z-index: 1;
@@ -113,9 +123,9 @@
             align-items: center;
             color: white;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.3s ease, transform 0.2s ease;
             user-select: none;
         }
         .grid-block:hover {
@@ -128,120 +138,164 @@
         /* 底部导航 */
         .nav-controls {
             display: flex;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .nav-btn {
-            padding: 10px 24px;
+            padding: 12px 24px;
             font-size: 1.1rem;
             color: white;
-            background-color: #48bb78;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.2s;
+            transition: all 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .nav-btn:hover {
+        .btn-prev, .btn-next {
+            background-color: #48bb78;
+        }
+        .btn-prev:hover, .btn-next:hover {
             background-color: #38a169;
         }
-        .nav-btn:disabled {
+        .btn-prev:disabled, .btn-next:disabled {
             background-color: #a0aec0;
             cursor: not-allowed;
             box-shadow: none;
+        }
+        .btn-reveal {
+            background-color: #ed8936;
+        }
+        .btn-reveal:hover {
+            background-color: #dd6b20;
         }
     </style>
 </head>
 <body>
 
-    <h1>📝 核心词汇盲盒</h1>
+    <h1>🎯 Character Decoder</h1>
 
     <div class="header-controls">
-        <div class="progress" id="progress-text">词语 1 / 6</div>
+        <div class="progress" id="progress-text">Word 1 / 45</div>
         <div class="hint-container">
             <button class="hint-btn" onclick="toggleHint()">
-                👁️ 英文提示
+                👁️ Show Hint
             </button>
-            <span class="hint-text" id="hint-display">sign up</span>
+            <span class="hint-text" id="hint-display"></span>
         </div>
     </div>
 
-    <!-- 显示双字的容器 -->
+    <!-- 动态生成汉字的容器 -->
     <div class="word-container" id="word-container">
-        <!-- 第一个字 -->
-        <div class="char-box">
-            <div class="char-display" id="char1">报</div>
-            <div class="grid-container" id="grid1"></div>
-        </div>
-        <!-- 第二个字 -->
-        <div class="char-box">
-            <div class="char-display" id="char2">名</div>
-            <div class="grid-container" id="grid2"></div>
-        </div>
+        <!-- JS将在这里自动生成对应字数的方块 -->
     </div>
 
     <div class="nav-controls">
-        <button class="nav-btn" id="prev-btn" onclick="changeWord(-1)">⬅️ 上一个</button>
-        <button class="nav-btn" id="next-btn" onclick="changeWord(1)">下一个 ➡️</button>
+        <button class="nav-btn btn-prev" id="prev-btn" onclick="changeWord(-1)">⬅️ Prev</button>
+        <button class="nav-btn btn-reveal" onclick="revealAnswer()">👀 Reveal Answer</button>
+        <button class="nav-btn btn-next" id="next-btn" onclick="changeWord(1)">Next ➡️</button>
     </div>
 
     <script>
-        // 词汇数据源
+        // 提取自你提供的三张截图的完整词汇库
         const vocabList = [
-            { c1: '报', c2: '名', hint: 'sign up' },
-            { c1: '体', c2: '验', hint: 'experience' },
-            { c1: '乘', c2: '坐', hint: 'take (a ride)' },
-            { c1: '全', c2: '球', hint: 'global' },
-            { c1: '首', c2: '次', hint: 'first time' },
-            { c1: '人', c2: '数', hint: 'number of people' }
+            // 图1词汇
+            { word: '费用', hint: 'cost' }, { word: '价格', hint: 'price' }, { word: '软件', hint: 'software' },
+            { word: '需求', hint: 'demand' }, { word: '优化', hint: 'optimize' }, { word: '线路', hint: 'route' },
+            { word: '节约', hint: 'save' }, { word: '乘车', hint: 'ride' }, { word: '省钱', hint: 'save money' },
+            { word: '节省', hint: 'save' }, { word: '欢迎', hint: 'welcome' }, { word: '分享', hint: 'share' },
+            { word: '播放', hint: 'play' }, { word: '评论', hint: 'comment' }, { word: '订阅', hint: 'subscribe' },
+            
+            // 图2词汇
+            { word: '转动', hint: 'turn' }, { word: '神奇', hint: 'magical' }, { word: '鬼', hint: 'ghost' },
+            { word: '适应', hint: 'adapt' }, { word: '代替', hint: 'replace' }, { word: '接送', hint: 'pick up/drop off' },
+            { word: '发明', hint: 'invention' }, { word: '改变', hint: 'change' }, { word: '城市', hint: 'city' },
+            { word: '环境', hint: 'environment' }, { word: '缓解', hint: 'relieve' }, { word: '道路', hint: 'road' },
+            { word: '拥堵', hint: 'congestion' }, { word: '现象', hint: 'phenomenon' }, { word: '大幅度', hint: 'significantly' }, 
+            { word: '降低', hint: 'reduce' },
+
+            // 图3词汇
+            { word: '报名', hint: 'sign up' }, { word: '体验', hint: 'experience' }, { word: '乘坐', hint: 'take (a ride)' },
+            { word: '全球', hint: 'global' }, { word: '首次', hint: 'first time' }, { word: '人数', hint: 'number of people' },
+            { word: '增加', hint: 'increase' }, { word: '一倍', hint: 'double' }, { word: '达到', hint: 'reach' },
+            { word: '本次', hint: 'this time' }, { word: '测试', hint: 'test' }, { word: '乘客', hint: 'passenger' },
+            { word: '紧张', hint: 'nervous' }, { word: '方向盘', hint: 'steering wheel' }
         ];
 
         let currentIndex = 0;
         let hintVisible = false;
 
-        // 生成数字方块
-        function generateBlocks(containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            for (let i = 1; i <= 16; i++) {
-                const block = document.createElement('div');
-                block.className = 'grid-block';
-                block.innerText = i; // 方块显示数字
-                block.onclick = function() {
-                    this.classList.add('hidden'); // 点击隐藏
-                };
-                container.appendChild(block);
-            }
-        }
-
-        // 渲染当前词汇
+        // 核心渲染函数：根据当前词语动态生成盲盒
         function renderWord() {
             const currentVocab = vocabList[currentIndex];
+            const wordContainer = document.getElementById('word-container');
             
-            // 更新汉字
-            document.getElementById('char1').innerText = currentVocab.c1;
-            document.getElementById('char2').innerText = currentVocab.c2;
+            // 清空现有容器
+            wordContainer.innerHTML = '';
             
-            // 更新提示词，但保持当前的可见状态
+            // 根据当前词语的字数，动态生成方块
+            for (let i = 0; i < currentVocab.word.length; i++) {
+                const char = currentVocab.word[i];
+                
+                // 创建外层大盒子
+                const boxDiv = document.createElement('div');
+                boxDiv.className = 'char-box';
+                
+                // 创建底层汉字
+                const charDiv = document.createElement('div');
+                charDiv.className = 'char-display';
+                charDiv.innerText = char;
+                
+                // 创建表层网格
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'grid-container';
+                
+                // 填充16个数字小方块
+                for (let j = 1; j <= 16; j++) {
+                    const block = document.createElement('div');
+                    block.className = 'grid-block';
+                    block.innerText = j;
+                    block.onclick = function() {
+                        this.classList.add('hidden');
+                    };
+                    gridDiv.appendChild(block);
+                }
+                
+                boxDiv.appendChild(charDiv);
+                boxDiv.appendChild(gridDiv);
+                wordContainer.appendChild(boxDiv);
+            }
+            
+            // 更新提示词文本
             document.getElementById('hint-display').innerText = currentVocab.hint;
             
-            // 更新进度
-            document.getElementById('progress-text').innerText = `词语 ${currentIndex + 1} / ${vocabList.length}`;
+            // 更新进度条
+            document.getElementById('progress-text').innerText = `Word ${currentIndex + 1} / ${vocabList.length}`;
 
-            // 重置两个字的遮罩方块
-            generateBlocks('grid1');
-            generateBlocks('grid2');
-
-            // 隐藏提示（每次切词默认隐藏）
+            // 重置提示词的显示状态
             hintVisible = false;
             document.getElementById('hint-display').style.display = 'none';
 
-            // 更新按钮状态
+            // 更新按钮可用状态
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabList.length - 1);
         }
 
-        // 切换上一个/下一个词汇
+        // 揭晓答案：隐藏所有网格方块，并显示英文提示
+        function revealAnswer() {
+            // 选出所有的数字方块，给它们加上 hidden 类
+            const allBlocks = document.querySelectorAll('.grid-block');
+            allBlocks.forEach(block => {
+                block.classList.add('hidden');
+            });
+            
+            // 自动显示提示词
+            hintVisible = true;
+            document.getElementById('hint-display').style.display = 'block';
+        }
+
+        // 切换词汇
         function changeWord(direction) {
             currentIndex += direction;
             if (currentIndex < 0) currentIndex = 0;
@@ -249,13 +303,13 @@
             renderWord();
         }
 
-        // 切换提示词的显示/隐藏
+        // 手动切换英文提示开关
         function toggleHint() {
             hintVisible = !hintVisible;
             document.getElementById('hint-display').style.display = hintVisible ? 'block' : 'none';
         }
 
-        // 页面加载时初始化
+        // 页面初始化
         window.onload = renderWord;
     </script>
 
