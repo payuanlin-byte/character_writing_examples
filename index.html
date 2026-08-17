@@ -22,11 +22,18 @@
         }
         .header-controls {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 15px;
             width: 100%;
             max-width: 800px;
             align-items: center;
             margin-bottom: 20px;
+        }
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
         }
         .progress {
             font-size: 1.1rem;
@@ -37,8 +44,12 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        /* 英文提示区域 */
-        .hint-container {
+        /* 辅助工具区域 (提示和答案) */
+        .helpers {
+            display: flex;
+            gap: 15px;
+        }
+        .info-container {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -46,11 +57,11 @@
             padding: 8px 15px;
             border-radius: 20px;
             min-height: 24px;
+            min-width: 120px;
         }
-        .hint-btn {
+        .info-btn {
             background: none;
             border: none;
-            color: #2b6cb0;
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -59,15 +70,19 @@
             font-size: 1rem;
             padding: 0;
         }
-        .hint-btn:hover {
-            color: #2c5282;
-        }
-        .hint-text {
+        .hint-btn { color: #2b6cb0; }
+        .hint-btn:hover { color: #2c5282; }
+        .answer-btn { color: #c05621; }
+        .answer-btn:hover { color: #9c4221; }
+        
+        .info-text {
             font-size: 1.2rem;
-            color: #e53e3e;
             font-weight: bold;
             display: none;
         }
+        .hint-text { color: #2b6cb0; }
+        .answer-text { color: #c05621; letter-spacing: 2px;}
+
         /* 游戏主体区域 */
         .word-container {
             display: flex;
@@ -153,23 +168,11 @@
             transition: all 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .btn-prev, .btn-next {
-            background-color: #48bb78;
-        }
-        .btn-prev:hover, .btn-next:hover {
-            background-color: #38a169;
-        }
-        .btn-prev:disabled, .btn-next:disabled {
-            background-color: #a0aec0;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        .btn-reveal {
-            background-color: #ed8936;
-        }
-        .btn-reveal:hover {
-            background-color: #dd6b20;
-        }
+        .btn-prev, .btn-next { background-color: #48bb78; }
+        .btn-prev:hover, .btn-next:hover { background-color: #38a169; }
+        .btn-prev:disabled, .btn-next:disabled { background-color: #a0aec0; cursor: not-allowed; box-shadow: none; }
+        .btn-reveal { background-color: #ed8936; }
+        .btn-reveal:hover { background-color: #dd6b20; }
     </style>
 </head>
 <body>
@@ -177,37 +180,39 @@
     <h1>🎯 Character Decoder</h1>
 
     <div class="header-controls">
-        <div class="progress" id="progress-text">Word 1 / 45</div>
-        <div class="hint-container">
-            <button class="hint-btn" onclick="toggleHint()">
-                👁️ Show Hint
-            </button>
-            <span class="hint-text" id="hint-display"></span>
+        <div class="top-row">
+            <div class="progress" id="progress-text">Word 1 / 45</div>
+            <div class="helpers">
+                <div class="info-container">
+                    <button class="info-btn hint-btn" onclick="toggleHint()">👁️ Hint</button>
+                    <span class="info-text hint-text" id="hint-display"></span>
+                </div>
+                <div class="info-container">
+                    <button class="info-btn answer-btn" onclick="toggleAnswer()">💡 Answer</button>
+                    <span class="info-text answer-text" id="answer-display"></span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- 动态生成汉字的容器 -->
-    <div class="word-container" id="word-container">
-        <!-- JS将在这里自动生成对应字数的方块 -->
-    </div>
+    <div class="word-container" id="word-container"></div>
 
     <div class="nav-controls">
         <button class="nav-btn btn-prev" id="prev-btn" onclick="changeWord(-1)">⬅️ Prev</button>
-        <button class="nav-btn btn-reveal" onclick="revealAnswer()">👀 Reveal Answer</button>
+        <button class="nav-btn btn-reveal" onclick="revealAll()">👀 Reveal All</button>
         <button class="nav-btn btn-next" id="next-btn" onclick="changeWord(1)">Next ➡️</button>
     </div>
 
     <script>
         // 提取自你提供的三张截图的完整词汇库
         const vocabList = [
-            // 图1词汇
             { word: '费用', hint: 'cost' }, { word: '价格', hint: 'price' }, { word: '软件', hint: 'software' },
             { word: '需求', hint: 'demand' }, { word: '优化', hint: 'optimize' }, { word: '线路', hint: 'route' },
             { word: '节约', hint: 'save' }, { word: '乘车', hint: 'ride' }, { word: '省钱', hint: 'save money' },
             { word: '节省', hint: 'save' }, { word: '欢迎', hint: 'welcome' }, { word: '分享', hint: 'share' },
             { word: '播放', hint: 'play' }, { word: '评论', hint: 'comment' }, { word: '订阅', hint: 'subscribe' },
             
-            // 图2词汇
             { word: '转动', hint: 'turn' }, { word: '神奇', hint: 'magical' }, { word: '鬼', hint: 'ghost' },
             { word: '适应', hint: 'adapt' }, { word: '代替', hint: 'replace' }, { word: '接送', hint: 'pick up/drop off' },
             { word: '发明', hint: 'invention' }, { word: '改变', hint: 'change' }, { word: '城市', hint: 'city' },
@@ -215,7 +220,6 @@
             { word: '拥堵', hint: 'congestion' }, { word: '现象', hint: 'phenomenon' }, { word: '大幅度', hint: 'significantly' }, 
             { word: '降低', hint: 'reduce' },
 
-            // 图3词汇
             { word: '报名', hint: 'sign up' }, { word: '体验', hint: 'experience' }, { word: '乘坐', hint: 'take (a ride)' },
             { word: '全球', hint: 'global' }, { word: '首次', hint: 'first time' }, { word: '人数', hint: 'number of people' },
             { word: '增加', hint: 'increase' }, { word: '一倍', hint: 'double' }, { word: '达到', hint: 'reach' },
@@ -225,33 +229,27 @@
 
         let currentIndex = 0;
         let hintVisible = false;
+        let answerVisible = false;
 
-        // 核心渲染函数：根据当前词语动态生成盲盒
+        // 核心渲染函数
         function renderWord() {
             const currentVocab = vocabList[currentIndex];
             const wordContainer = document.getElementById('word-container');
             
-            // 清空现有容器
             wordContainer.innerHTML = '';
             
-            // 根据当前词语的字数，动态生成方块
             for (let i = 0; i < currentVocab.word.length; i++) {
                 const char = currentVocab.word[i];
-                
-                // 创建外层大盒子
                 const boxDiv = document.createElement('div');
                 boxDiv.className = 'char-box';
                 
-                // 创建底层汉字
                 const charDiv = document.createElement('div');
                 charDiv.className = 'char-display';
                 charDiv.innerText = char;
                 
-                // 创建表层网格
                 const gridDiv = document.createElement('div');
                 gridDiv.className = 'grid-container';
                 
-                // 填充16个数字小方块
                 for (let j = 1; j <= 16; j++) {
                     const block = document.createElement('div');
                     block.className = 'grid-block';
@@ -267,32 +265,33 @@
                 wordContainer.appendChild(boxDiv);
             }
             
-            // 更新提示词文本
+            // 更新提示词和答案文本
             document.getElementById('hint-display').innerText = currentVocab.hint;
+            document.getElementById('answer-display').innerText = currentVocab.word;
             
-            // 更新进度条
             document.getElementById('progress-text').innerText = `Word ${currentIndex + 1} / ${vocabList.length}`;
 
-            // 重置提示词的显示状态
+            // 重置显示状态为隐藏
             hintVisible = false;
+            answerVisible = false;
             document.getElementById('hint-display').style.display = 'none';
+            document.getElementById('answer-display').style.display = 'none';
 
-            // 更新按钮可用状态
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabList.length - 1);
         }
 
-        // 揭晓答案：隐藏所有网格方块，并显示英文提示
-        function revealAnswer() {
-            // 选出所有的数字方块，给它们加上 hidden 类
+        // 揭晓所有：隐藏所有网格方块，并显示提示和答案
+        function revealAll() {
             const allBlocks = document.querySelectorAll('.grid-block');
             allBlocks.forEach(block => {
                 block.classList.add('hidden');
             });
             
-            // 自动显示提示词
             hintVisible = true;
+            answerVisible = true;
             document.getElementById('hint-display').style.display = 'block';
+            document.getElementById('answer-display').style.display = 'block';
         }
 
         // 切换词汇
@@ -309,7 +308,12 @@
             document.getElementById('hint-display').style.display = hintVisible ? 'block' : 'none';
         }
 
-        // 页面初始化
+        // 手动切换中文答案开关
+        function toggleAnswer() {
+            answerVisible = !answerVisible;
+            document.getElementById('answer-display').style.display = answerVisible ? 'block' : 'none';
+        }
+
         window.onload = renderWord;
     </script>
 
