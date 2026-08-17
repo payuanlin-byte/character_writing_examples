@@ -171,8 +171,6 @@
         .btn-prev, .btn-next { background-color: #48bb78; }
         .btn-prev:hover, .btn-next:hover { background-color: #38a169; }
         .btn-prev:disabled, .btn-next:disabled { background-color: #a0aec0; cursor: not-allowed; box-shadow: none; }
-        .btn-reveal { background-color: #ed8936; }
-        .btn-reveal:hover { background-color: #dd6b20; }
     </style>
 </head>
 <body>
@@ -200,12 +198,11 @@
 
     <div class="nav-controls">
         <button class="nav-btn btn-prev" id="prev-btn" onclick="changeWord(-1)">⬅️ Prev</button>
-        <button class="nav-btn btn-reveal" onclick="revealAll()">👀 Reveal All</button>
         <button class="nav-btn btn-next" id="next-btn" onclick="changeWord(1)">Next ➡️</button>
     </div>
 
     <script>
-        // 提取自你提供的三张截图的完整词汇库
+        // 完整词汇库
         const vocabList = [
             { word: '费用', hint: 'cost' }, { word: '价格', hint: 'price' }, { word: '软件', hint: 'software' },
             { word: '需求', hint: 'demand' }, { word: '优化', hint: 'optimize' }, { word: '线路', hint: 'route' },
@@ -279,19 +276,6 @@
 
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabList.length - 1);
-        }
-
-        // 揭晓所有：隐藏所有网格方块，并显示提示和答案
-        function revealAll() {
-            const allBlocks = document.querySelectorAll('.grid-block');
-            allBlocks.forEach(block => {
-                block.classList.add('hidden');
-            });
-            
-            hintVisible = true;
-            answerVisible = true;
-            document.getElementById('hint-display').style.display = 'block';
-            document.getElementById('answer-display').style.display = 'block';
         }
 
         // 切换词汇
