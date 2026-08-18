@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fading Writer</title>
+    <title>Fading Writer - 田字格版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -71,86 +71,91 @@
             letter-spacing: 2px;
         }
 
-        /* 汉字结构展示区 */
+        /* 田字格展示区 */
         .word-display {
             display: flex;
             gap: 40px;
             margin-bottom: 30px;
         }
 
-        .char-container {
-            display: flex;
-            border: 3px dashed #cbd5e0;
-            border-radius: 12px;
-            padding: 10px;
-            background: #f1f5f9;
+        /* 核心：田字格 CSS 绘制 */
+        .tianzige {
+            width: 140px;
+            height: 140px;
+            border: 3px solid #ef4444; /* 红色外框 */
+            position: relative;
+            background-color: transparent;
+            box-sizing: border-box;
+        }
+        
+        .tianzige::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            border-top: 2px dashed #ef4444; /* 红色虚线横线 */
+            transform: translateY(-50%);
+        }
+        
+        .tianzige::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 1px;
+            height: 100%;
+            border-left: 2px dashed #ef4444; /* 红色虚线竖线 */
+            transform: translateX(-50%);
         }
 
-        /* 左右结构 */
-        .layout-lr {
-            flex-direction: row;
-            align-items: center;
+        .tianzige-content {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: grid;
+            z-index: 1; /* 确保文字在虚线之上 */
         }
-        /* 上下结构 */
-        .layout-tb {
-            flex-direction: column;
-            align-items: center;
-        }
+
+        /* 左右与上下结构的网络划分 */
+        .layout-lr { grid-template-columns: 1fr 1fr; }
+        .layout-tb { grid-template-rows: 1fr 1fr; }
 
         .part-box {
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 4rem;
-            width: 80px;
-            height: 80px;
-            margin: 5px;
+            font-size: 3.5rem; /* 根据半格大小调整 */
+            width: 100%;
+            height: 100%;
         }
 
         .part-given {
-            color: #1976d2;
-            font-weight: bold;
+            color: #1e293b; /* 给定的部件颜色较深 */
         }
 
         .part-missing {
-            background: #fff;
-            border: 2px solid #94a3b8;
-            border-radius: 8px;
-            color: transparent; /* 默认隐藏填空部分 */
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .part-missing::after {
-            content: '?';
-            position: absolute;
-            color: #cbd5e0;
-            font-family: sans-serif;
-            font-size: 2rem;
+            color: transparent; /* 默认隐藏 */
+            transition: color 0.2s ease;
         }
 
         /* 揭晓状态 */
-        .char-container.revealed .part-missing {
-            color: #e53e3e; /* 揭晓后显示红色 */
-            border-color: #e53e3e;
-            background: #fff5f5;
-        }
-        .char-container.revealed .part-missing::after {
-            display: none;
+        .part-missing.revealed {
+            color: #3b82f6; /* 揭晓后显示蓝色，方便区分 */
         }
 
         /* 完整汉字展示 */
         .full-word-display {
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 3rem;
-            color: #2d3748;
-            letter-spacing: 15px;
+            font-size: 3.5rem;
+            color: #10b981;
+            letter-spacing: 20px;
             opacity: 0;
             transform: translateY(10px);
-            transition: all 0.4s ease;
-            margin-top: 20px;
-            height: 50px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            height: 60px;
         }
         .full-word-display.show {
             opacity: 1;
@@ -209,7 +214,7 @@
         </div>
 
         <div class="word-display" id="word-display">
-            <!-- JS 动态生成汉字结构 -->
+            <!-- JS 动态生成带有田字格的汉字结构 -->
         </div>
 
         <div class="full-word-display" id="full-word-display"></div>
@@ -218,49 +223,56 @@
     <!-- 按钮控制区 -->
     <div class="controls">
         <button class="btn btn-nav" id="prev-btn" onclick="changeWord(-1)">⬅️ Prev</button>
-        <button class="btn btn-action" onclick="revealMissing()">🔍 Reveal Parts</button>
-        <button class="btn btn-success" onclick="showFullWord()">✨ Show Full Word</button>
+        <button class="btn btn-action" id="toggle-parts-btn" onclick="toggleMissingParts()">🔍 Reveal Parts</button>
+        <button class="btn btn-success" id="toggle-word-btn" onclick="toggleFullWord()">✨ Show Full Word</button>
         <button class="btn btn-nav" id="next-btn" onclick="changeWord(1)">Next ➡️</button>
     </div>
 
     <script>
-        // 数据结构：精确定义每个字的间架结构 (layout) 和保留部件 (given)
-        // layout: 'lr' (左右结构), 'tb' (上下结构)
+        // 数据结构：p1 是第一个位置（左或上），p2 是第二个位置（右或下）
         const vocabData = [
             {
                 word: "报名", pinyin: "bào míng", english: "sign up",
                 chars: [
-                    { full: "报", layout: "lr", given: "扌", missing: "卩又" },
-                    { full: "名", layout: "tb", given: "夕", missing: "口" }
+                    { full: "报", layout: "lr", p1: {text: "扌", type: "given"}, p2: {text: "卩又", type: "missing"} },
+                    { full: "名", layout: "tb", p1: {text: "夕", type: "given"}, p2: {text: "口", type: "missing"} }
                 ]
             },
             {
                 word: "体验", pinyin: "tǐ yàn", english: "experience",
                 chars: [
-                    { full: "体", layout: "lr", given: "亻", missing: "本" },
-                    { full: "验", layout: "lr", given: "马", missing: "佥" }
+                    { full: "体", layout: "lr", p1: {text: "亻", type: "given"}, p2: {text: "本", type: "missing"} },
+                    { full: "验", layout: "lr", p1: {text: "马", type: "given"}, p2: {text: "佥", type: "missing"} }
                 ]
             },
             {
                 word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
                 chars: [
-                    { full: "乘", layout: "tb", given: "禾", missing: "北" }, // 提取核心框架
-                    { full: "坐", layout: "tb", given: "从", missing: "土" }
+                    { full: "乘", layout: "tb", p1: {text: "禾", type: "given"}, p2: {text: "北", type: "missing"} }, 
+                    { full: "坐", layout: "tb", p1: {text: "从", type: "given"}, p2: {text: "土", type: "missing"} }
                 ]
             },
             {
                 word: "全球", pinyin: "quán qiú", english: "global",
                 chars: [
-                    { full: "全", layout: "tb", given: "人", missing: "王" },
-                    { full: "球", layout: "lr", given: "王", missing: "求" }
+                    { full: "全", layout: "tb", p1: {text: "人", type: "given"}, p2: {text: "王", type: "missing"} },
+                    { full: "球", layout: "lr", p1: {text: "王", type: "given"}, p2: {text: "求", type: "missing"} }
                 ]
             }
         ];
 
         let currentIndex = 0;
+        let isPartsRevealed = false;
+        let isWordRevealed = false;
 
         function renderWord() {
             const currentItem = vocabData[currentIndex];
+            
+            // 重置状态变量和按钮文本
+            isPartsRevealed = false;
+            isWordRevealed = false;
+            document.getElementById('toggle-parts-btn').innerText = "🔍 Reveal Parts";
+            document.getElementById('toggle-word-btn').innerText = "✨ Show Full Word";
             
             // 渲染提示
             document.getElementById('hint-en').innerText = currentItem.english;
@@ -271,27 +283,26 @@
             displayArea.innerHTML = '';
             
             currentItem.chars.forEach(charObj => {
-                const charContainer = document.createElement('div');
-                charContainer.className = `char-container layout-${charObj.layout}`;
+                const tianzige = document.createElement('div');
+                tianzige.className = 'tianzige';
                 
-                const givenPart = document.createElement('div');
-                givenPart.className = 'part-box part-given';
-                givenPart.innerText = charObj.given;
+                const contentGrid = document.createElement('div');
+                contentGrid.className = `tianzige-content layout-${charObj.layout}`;
                 
-                const missingPart = document.createElement('div');
-                missingPart.className = 'part-box part-missing';
-                missingPart.innerText = charObj.missing;
+                // 处理 P1 (左或上)
+                const p1Div = document.createElement('div');
+                p1Div.className = `part-box part-${charObj.p1.type}`;
+                p1Div.innerText = charObj.p1.text;
                 
-                // 按照不同结构组装部件
-                if (charObj.layout === 'lr') {
-                    charContainer.appendChild(givenPart);
-                    charContainer.appendChild(missingPart);
-                } else if (charObj.layout === 'tb') {
-                    charContainer.appendChild(givenPart);
-                    charContainer.appendChild(missingPart);
-                }
+                // 处理 P2 (右或下)
+                const p2Div = document.createElement('div');
+                p2Div.className = `part-box part-${charObj.p2.type}`;
+                p2Div.innerText = charObj.p2.text;
                 
-                displayArea.appendChild(charContainer);
+                contentGrid.appendChild(p1Div);
+                contentGrid.appendChild(p2Div);
+                tianzige.appendChild(contentGrid);
+                displayArea.appendChild(tianzige);
             });
 
             // 隐藏完整答案
@@ -299,24 +310,42 @@
             fullWordEl.innerText = currentItem.word;
             fullWordEl.classList.remove('show');
 
-            // 更新状态
+            // 更新导航按钮状态
             document.getElementById('progress-text').innerText = `Word ${currentIndex + 1} / ${vocabData.length}`;
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabData.length - 1);
         }
 
-        // 揭晓填空部分
-        function revealMissing() {
-            const containers = document.querySelectorAll('.char-container');
-            containers.forEach(container => {
-                container.classList.add('revealed');
+        // 切换揭晓/隐藏部件
+        function toggleMissingParts() {
+            isPartsRevealed = !isPartsRevealed;
+            const missingParts = document.querySelectorAll('.part-missing');
+            const btn = document.getElementById('toggle-parts-btn');
+            
+            missingParts.forEach(part => {
+                if (isPartsRevealed) {
+                    part.classList.add('revealed');
+                } else {
+                    part.classList.remove('revealed');
+                }
             });
+
+            btn.innerText = isPartsRevealed ? "🙈 Hide Parts" : "🔍 Reveal Parts";
         }
 
-        // 显示完整标准汉字（用于核对最终比例）
-        function showFullWord() {
-            revealMissing(); // 确保部件也被揭晓
-            document.getElementById('full-word-display').classList.add('show');
+        // 切换揭晓/隐藏完整汉字
+        function toggleFullWord() {
+            isWordRevealed = !isWordRevealed;
+            const fullWordEl = document.getElementById('full-word-display');
+            const btn = document.getElementById('toggle-word-btn');
+            
+            if (isWordRevealed) {
+                fullWordEl.classList.add('show');
+                btn.innerText = "🙈 Hide Full Word";
+            } else {
+                fullWordEl.classList.remove('show');
+                btn.innerText = "✨ Show Full Word";
+            }
         }
 
         // 切换词汇
