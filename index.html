@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fading Writer - 田字格重构版</title>
+    <title>Fading Writer - 米字格精准裁剪版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -71,96 +71,61 @@
             letter-spacing: 2px;
         }
 
-        /* 田字格展示区 */
+        /* 米字格展示区 */
         .word-display {
             display: flex;
             gap: 40px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        /* 核心：田字格 CSS 绘制 */
-        .tianzige {
+        /* 核心：米字格 SVG 背景绘制，完美复刻截图 */
+        .mizige {
             width: 160px;
             height: 160px;
-            border: 3px solid #ef4444; /* 红色外框 */
+            border: 2px solid #ef4444; /* 红色外框 */
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><line x1='0' y1='80' x2='160' y2='80' stroke='%23ef4444' stroke-width='1.5' stroke-dasharray='6,4'/><line x1='80' y1='0' x2='80' y2='160' stroke='%23ef4444' stroke-width='1.5' stroke-dasharray='6,4'/><line x1='0' y1='0' x2='160' y2='160' stroke='%23ef4444' stroke-width='1' stroke-dasharray='3,4'/><line x1='160' y1='0' x2='0' y2='160' stroke='%23ef4444' stroke-width='1' stroke-dasharray='3,4'/></svg>");
             position: relative;
-            background-color: transparent;
-            box-sizing: border-box;
-        }
-        
-        .tianzige::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            border-top: 2px dashed #ef4444; /* 红色虚线横线 */
-            transform: translateY(-50%);
-        }
-        
-        .tianzige::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 1px;
-            height: 100%;
-            border-left: 2px dashed #ef4444; /* 红色虚线竖线 */
-            transform: translateX(-50%);
-        }
-
-        /* 网格内容层：精确控制部件位置 */
-        .tzg-grid {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: grid;
-            grid-template-columns: 50% 50%;
-            grid-template-rows: 50% 50%;
-            z-index: 2; /* 在虚线之上 */
-        }
-
-        .part-box {
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        /* 双层汉字叠加技术 */
+        .char-layer {
+            position: absolute;
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 4.5rem;
-            transition: color 0.2s ease;
+            font-size: 130px; /* 字体大小适配160px的格子 */
+            line-height: 160px;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            top: 0;
+            left: 0;
         }
 
-        /* 空间占位类 */
-        .pos-left { grid-column: 1 / 2; grid-row: 1 / 3; }
-        .pos-right { grid-column: 2 / 3; grid-row: 1 / 3; }
-        .pos-top { grid-column: 1 / 3; grid-row: 1 / 2; }
-        .pos-bottom { grid-column: 1 / 3; grid-row: 2 / 3; }
-
-        /* 状态颜色类 */
-        .part-given {
-            color: #1e293b; 
-        }
-        .part-missing {
-            color: transparent; /* 默认隐藏 */
-        }
-        .part-missing.revealed {
-            color: #3b82f6; /* 揭晓后显示蓝色，原位出现 */
-        }
-
-        /* 完整汉字展示 */
-        .full-word-display {
-            font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 4rem;
-            color: #10b981;
-            letter-spacing: 20px;
+        /* 底层：蓝色的缺失部件。初始透明度为0（完全空白） */
+        .layer-revealed {
+            color: #3b82f6; /* 揭晓时的蓝色 */
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            height: 70px;
+            transition: opacity 0.3s ease;
+            z-index: 1;
         }
-        .full-word-display.show {
-            opacity: 1;
-            transform: translateY(0);
+        .layer-revealed.show {
+            opacity: 1; /* 点击 Reveal 后显示 */
+        }
+
+        /* 表层：黑色的保留部件。通过 clip-path 裁剪掉不需要的部分 */
+        .layer-given {
+            color: #1e293b;
+            z-index: 2;
+            transition: clip-path 0.4s ease;
+        }
+        /* 点击 Show Full Word 时，取消裁剪，展示全黑汉字 */
+        .layer-given.show-full {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
         }
 
         /* 底部操作按钮 */
@@ -180,22 +145,13 @@
             transition: all 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .btn-nav {
-            background-color: #64748b;
-            color: white;
-        }
+        .btn-nav { background-color: #64748b; color: white; }
         .btn-nav:hover { background-color: #475569; }
         .btn-nav:disabled { background-color: #cbd5e0; cursor: not-allowed; box-shadow: none; }
         
-        .btn-action {
-            background-color: #3b82f6;
-            color: white;
-        }
+        .btn-action { background-color: #3b82f6; color: white; }
         .btn-action:hover { background-color: #2563eb; }
-        .btn-success {
-            background-color: #10b981;
-            color: white;
-        }
+        .btn-success { background-color: #10b981; color: white; }
         .btn-success:hover { background-color: #059669; }
     </style>
 </head>
@@ -215,10 +171,8 @@
         </div>
 
         <div class="word-display" id="word-display">
-            <!-- JS 动态生成带有田字格的汉字结构 -->
+            <!-- JS 动态生成 -->
         </div>
-
-        <div class="full-word-display" id="full-word-display"></div>
     </div>
 
     <!-- 按钮控制区 -->
@@ -230,34 +184,35 @@
     </div>
 
     <script>
-        // 数据结构：精确定义组件的位置 (pos: 'left', 'right', 'top', 'bottom')
+        // 数据结构：利用 clip-path 百分比精确控制只显示汉字的哪一部分
+        // 比如 报：polygon(0 0, 42% 0, 42% 100%, 0 100%) 代表只显示左边 42% 的区域（即"扌"）
         const vocabData = [
             {
                 word: "报名", pinyin: "bào míng", english: "sign up",
                 chars: [
-                    { full: "报", p1: {text: "扌", type: "given", pos: "left"}, p2: {text: "卩又", type: "missing", pos: "right"} },
-                    { full: "名", p1: {text: "夕", type: "given", pos: "top"}, p2: {text: "口", type: "missing", pos: "bottom"} }
+                    { text: "报", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)" }, // 留左
+                    { text: "名", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)" }  // 留上
                 ]
             },
             {
                 word: "体验", pinyin: "tǐ yàn", english: "experience",
                 chars: [
-                    { full: "体", p1: {text: "亻", type: "given", pos: "left"}, p2: {text: "本", type: "missing", pos: "right"} },
-                    { full: "验", p1: {text: "马", type: "given", pos: "left"}, p2: {text: "佥", type: "missing", pos: "right"} }
+                    { text: "体", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, // 留左
+                    { text: "验", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)" }  // 留左
                 ]
             },
             {
                 word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
                 chars: [
-                    { full: "乘", p1: {text: "禾", type: "given", pos: "top"}, p2: {text: "北", type: "missing", pos: "bottom"} }, 
-                    { full: "坐", p1: {text: "从", type: "given", pos: "top"}, p2: {text: "土", type: "missing", pos: "bottom"} }
+                    { text: "乘", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, // 留上部禾
+                    { text: "坐", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  // 留上部从
                 ]
             },
             {
                 word: "全球", pinyin: "quán qiú", english: "global",
                 chars: [
-                    { full: "全", p1: {text: "人", type: "given", pos: "top"}, p2: {text: "王", type: "missing", pos: "bottom"} },
-                    { full: "球", p1: {text: "王", type: "given", pos: "left"}, p2: {text: "求", type: "missing", pos: "right"} }
+                    { text: "全", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, // 留上部人
+                    { text: "球", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)" }  // 留左部王
                 ]
             }
         ];
@@ -269,7 +224,7 @@
         function renderWord() {
             const currentItem = vocabData[currentIndex];
             
-            // 重置状态变量和按钮文本
+            // 重置状态
             isPartsRevealed = false;
             isWordRevealed = false;
             document.getElementById('toggle-parts-btn').innerText = "🔍 Reveal Parts";
@@ -279,77 +234,80 @@
             document.getElementById('hint-en').innerText = currentItem.english;
             document.getElementById('hint-py').innerText = currentItem.pinyin;
             
-            // 渲染结构格
+            // 渲染米字格和文字
             const displayArea = document.getElementById('word-display');
             displayArea.innerHTML = '';
             
             currentItem.chars.forEach(charObj => {
-                const tianzige = document.createElement('div');
-                tianzige.className = 'tianzige';
+                const mizige = document.createElement('div');
+                mizige.className = 'mizige';
                 
-                const gridDiv = document.createElement('div');
-                gridDiv.className = 'tzg-grid';
+                // 底层：蓝色完整汉字（初始透明度为0，完全空白）
+                const layerRevealed = document.createElement('div');
+                layerRevealed.className = 'char-layer layer-revealed';
+                layerRevealed.innerText = charObj.text;
                 
-                // 处理 P1
-                const p1Div = document.createElement('div');
-                p1Div.className = `part-box pos-${charObj.p1.pos} part-${charObj.p1.type}`;
-                p1Div.innerText = charObj.p1.text;
+                // 表层：黑色完整汉字（初始被裁剪，只露出给定部分）
+                const layerGiven = document.createElement('div');
+                layerGiven.className = 'char-layer layer-given';
+                layerGiven.innerText = charObj.text;
+                layerGiven.style.clipPath = charObj.clip;
                 
-                // 处理 P2
-                const p2Div = document.createElement('div');
-                p2Div.className = `part-box pos-${charObj.p2.pos} part-${charObj.p2.type}`;
-                p2Div.innerText = charObj.p2.text;
-                
-                gridDiv.appendChild(p1Div);
-                gridDiv.appendChild(p2Div);
-                tianzige.appendChild(gridDiv);
-                displayArea.appendChild(tianzige);
+                mizige.appendChild(layerRevealed);
+                mizige.appendChild(layerGiven);
+                displayArea.appendChild(mizige);
             });
 
-            // 隐藏完整答案
-            const fullWordEl = document.getElementById('full-word-display');
-            fullWordEl.innerText = currentItem.word;
-            fullWordEl.classList.remove('show');
-
-            // 更新导航按钮状态
+            // 更新进度
             document.getElementById('progress-text').innerText = `Word ${currentIndex + 1} / ${vocabData.length}`;
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabData.length - 1);
         }
 
-        // 切换揭晓/隐藏部件
+        // 切换揭晓/隐藏蓝色空白部分
         function toggleMissingParts() {
             isPartsRevealed = !isPartsRevealed;
-            const missingParts = document.querySelectorAll('.part-missing');
+            const revealedLayers = document.querySelectorAll('.layer-revealed');
             const btn = document.getElementById('toggle-parts-btn');
             
-            missingParts.forEach(part => {
+            revealedLayers.forEach(layer => {
                 if (isPartsRevealed) {
-                    part.classList.add('revealed');
+                    layer.classList.add('show');
                 } else {
-                    part.classList.remove('revealed');
+                    layer.classList.remove('show');
                 }
             });
 
             btn.innerText = isPartsRevealed ? "🙈 Hide Parts" : "🔍 Reveal Parts";
-        }
-
-        // 切换揭晓/隐藏完整汉字
-        function toggleFullWord() {
-            isWordRevealed = !isWordRevealed;
-            const fullWordEl = document.getElementById('full-word-display');
-            const btn = document.getElementById('toggle-word-btn');
             
-            if (isWordRevealed) {
-                fullWordEl.classList.add('show');
-                btn.innerText = "🙈 Hide Full Word";
-            } else {
-                fullWordEl.classList.remove('show');
-                btn.innerText = "✨ Show Full Word";
+            // 如果揭晓了部件，需确保全字模式关闭
+            if (isPartsRevealed && isWordRevealed) {
+                toggleFullWord(); 
             }
         }
 
-        // 切换词汇
+        // 切换揭晓/隐藏全黑汉字
+        function toggleFullWord() {
+            isWordRevealed = !isWordRevealed;
+            const givenLayers = document.querySelectorAll('.layer-given');
+            const btn = document.getElementById('toggle-word-btn');
+            
+            givenLayers.forEach(layer => {
+                if (isWordRevealed) {
+                    layer.classList.add('show-full');
+                } else {
+                    layer.classList.remove('show-full');
+                }
+            });
+
+            btn.innerText = isWordRevealed ? "🙈 Hide Full Word" : "✨ Show Full Word";
+            
+            // 如果展示了全字，需确保部件模式关闭
+            if (isWordRevealed && isPartsRevealed) {
+                toggleMissingParts();
+            }
+        }
+
         function changeWord(direction) {
             currentIndex += direction;
             if (currentIndex < 0) currentIndex = 0;
@@ -357,7 +315,6 @@
             renderWord();
         }
 
-        // 页面初始化
         window.onload = renderWord;
     </script>
 
