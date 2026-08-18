@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fading Writer - 外部提示版</title>
+    <title>Fading Writer - 完整词库版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -74,16 +74,17 @@
         /* 米字格与提示展示区 */
         .word-display {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             margin-bottom: 40px;
             justify-content: center;
+            flex-wrap: wrap;
             width: 100%;
         }
 
         .char-group {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
         /* 外部悬浮提示部件 */
@@ -94,7 +95,7 @@
             font-weight: bold;
             opacity: 0;
             transition: opacity 0.3s ease;
-            min-width: 60px;
+            min-width: 50px;
             text-align: center;
             user-select: none;
         }
@@ -102,7 +103,7 @@
             opacity: 1;
         }
 
-        /* 核心：米字格 SVG 背景绘制 */
+        /* 米字格 SVG 背景绘制 */
         .mizige {
             width: 160px;
             height: 160px;
@@ -173,7 +174,7 @@
     <h1>📝 Fading Writer</h1>
 
     <div class="header-controls">
-        <div class="progress" id="progress-text">Word 1 / 4</div>
+        <div class="progress" id="progress-text">Word 1 / 42</div>
     </div>
 
     <!-- 游戏展示区 -->
@@ -197,36 +198,183 @@
     </div>
 
     <script>
-        // 数据结构：加入了 missingText 用于外部提示展示
+        // 完整的 42 词数据库
         const vocabData = [
-            {
-                word: "报名", pinyin: "bào míng", english: "sign up",
-                chars: [
-                    { text: "报", missingText: "卩又", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)" }, 
-                    { text: "名", missingText: "口", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)" }  
-                ]
-            },
-            {
-                word: "体验", pinyin: "tǐ yàn", english: "experience",
-                chars: [
-                    { text: "体", missingText: "本", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
-                    { text: "验", missingText: "佥", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)" }  
-                ]
-            },
-            {
-                word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
-                chars: [
-                    { text: "乘", missingText: "北", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
-                    { text: "坐", missingText: "土", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  
-                ]
-            },
-            {
-                word: "全球", pinyin: "quán qiú", english: "global",
-                chars: [
-                    { text: "全", missingText: "王", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, 
-                    { text: "球", missingText: "求", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)" }  
-                ]
-            }
+            // 图 1 词汇
+            { word: "报名", pinyin: "bào míng", english: "sign up", chars: [
+                { text: "报", missingText: "卩又", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)" }, 
+                { text: "名", missingText: "口", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)" }  
+            ]},
+            { word: "体验", pinyin: "tǐ yàn", english: "experience", chars: [
+                { text: "体", missingText: "本", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "验", missingText: "佥", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)" }  
+            ]},
+            { word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)", chars: [
+                { text: "乘", missingText: "北", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
+                { text: "坐", missingText: "土", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  
+            ]},
+            { word: "全球", pinyin: "quán qiú", english: "global", chars: [
+                { text: "全", missingText: "王", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, 
+                { text: "球", missingText: "求", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)" }  
+            ]},
+            { word: "首次", pinyin: "shǒu cì", english: "first time", chars: [
+                { text: "首", missingText: "自", clip: "polygon(0 0, 100% 0, 100% 35%, 0 35%)" }, 
+                { text: "次", missingText: "欠", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+            { word: "人数", pinyin: "rén shù", english: "number of people", chars: [
+                { text: "人", missingText: "乀", clip: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" }, 
+                { text: "数", missingText: "攵", clip: "polygon(0 0, 60% 0, 60% 100%, 0 100%)" }  
+            ]},
+            { word: "增加", pinyin: "zēng jiā", english: "increase", chars: [
+                { text: "增", missingText: "曾", clip: "polygon(0 0, 30% 0, 30% 100%, 0 100%)" }, 
+                { text: "加", missingText: "口", clip: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" }  
+            ]},
+            { word: "一倍", pinyin: "yī bèi", english: "double", chars: [
+                { text: "一", missingText: "", clip: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }, 
+                { text: "倍", missingText: "立口", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+            { word: "达到", pinyin: "dá dào", english: "reach", chars: [
+                { text: "达", missingText: "辶", clip: "polygon(25% 0, 100% 0, 100% 85%, 25% 85%)" }, 
+                { text: "到", missingText: "刂", clip: "polygon(0 0, 70% 0, 70% 100%, 0 100%)" }  
+            ]},
+            { word: "本次", pinyin: "běn cì", english: "this time", chars: [
+                { text: "本", missingText: "一", clip: "polygon(0 0, 100% 0, 100% 70%, 0 70%)" }, 
+                { text: "次", missingText: "欠", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+            { word: "测试", pinyin: "cè shì", english: "test", chars: [
+                { text: "测", missingText: "则", clip: "polygon(0 0, 30% 0, 30% 100%, 0 100%)" }, 
+                { text: "试", missingText: "式", clip: "polygon(0 0, 30% 0, 30% 100%, 0 100%)" }  
+            ]},
+            { word: "乘客", pinyin: "chéng kè", english: "passenger", chars: [
+                { text: "乘", missingText: "北", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
+                { text: "客", missingText: "各", clip: "polygon(0 0, 100% 0, 100% 35%, 0 35%)" }  
+            ]},
+            { word: "紧张", pinyin: "jǐn zhāng", english: "nervous", chars: [
+                { text: "紧", missingText: "纟", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }, 
+                { text: "张", missingText: "长", clip: "polygon(0 0, 40% 0, 40% 100%, 0 100%)" }  
+            ]},
+            { word: "方向盘", pinyin: "fāng xiàng pán", english: "steering wheel", chars: [
+                { text: "方", missingText: "万", clip: "polygon(0 0, 100% 0, 100% 30%, 0 30%)" }, 
+                { text: "向", missingText: "口", clip: "polygon(0 0, 100% 0, 100% 35%, 0 35%, 35% 35%, 35% 100%, 0 100%)" }, 
+                { text: "盘", missingText: "皿", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  
+            ]},
+
+            // 图 2 词汇
+            { word: "适应", pinyin: "shì yìng", english: "adapt", chars: [
+                { text: "适", missingText: "辶", clip: "polygon(30% 0, 100% 0, 100% 80%, 30% 80%)" }, 
+                { text: "应", missingText: "龸", clip: "polygon(0 0, 100% 0, 100% 30%, 0 30%, 30% 30%, 30% 100%, 0 100%)" }  
+            ]},
+            { word: "代替", pinyin: "dài tì", english: "replace", chars: [
+                { text: "代", missingText: "弋", clip: "polygon(0 0, 40% 0, 40% 100%, 0 100%)" }, 
+                { text: "替", missingText: "曰", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  
+            ]},
+            { word: "接送", pinyin: "jiē sòng", english: "pick up/drop off", chars: [
+                { text: "接", missingText: "妾", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "送", missingText: "辶", clip: "polygon(30% 0, 100% 0, 100% 80%, 30% 80%)" }  
+            ]},
+            { word: "发明", pinyin: "fā míng", english: "invention", chars: [
+                { text: "发", missingText: "又", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, 
+                { text: "明", missingText: "月", clip: "polygon(0 0, 45% 0, 45% 100%, 0 100%)" }  
+            ]},
+            { word: "改变", pinyin: "gǎi biàn", english: "change", chars: [
+                { text: "改", missingText: "攵", clip: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" }, 
+                { text: "变", missingText: "又", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }  
+            ]},
+            { word: "城市", pinyin: "chéng shì", english: "city", chars: [
+                { text: "城", missingText: "成", clip: "polygon(0 0, 30% 0, 30% 100%, 0 100%)" }, 
+                { text: "市", missingText: "巾", clip: "polygon(0 0, 100% 0, 100% 35%, 0 35%)" }  
+            ]},
+            { word: "环境", pinyin: "huán jìng", english: "environment", chars: [
+                { text: "环", missingText: "不", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "境", missingText: "竟", clip: "polygon(0 0, 30% 0, 30% 100%, 0 100%)" }  
+            ]},
+            { word: "缓解", pinyin: "huǎn jiě", english: "relieve", chars: [
+                { text: "缓", missingText: "爰", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "解", missingText: "刀牛", clip: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" }  
+            ]},
+            { word: "道路", pinyin: "dào lù", english: "road", chars: [
+                { text: "道", missingText: "辶", clip: "polygon(30% 0, 100% 0, 100% 80%, 30% 80%)" }, 
+                { text: "路", missingText: "各", clip: "polygon(0 0, 45% 0, 45% 100%, 0 100%)" }  
+            ]},
+            { word: "拥堵", pinyin: "yōng dǔ", english: "congestion", chars: [
+                { text: "拥", missingText: "用", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "堵", missingText: "者", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+            { word: "现象", pinyin: "xiàn xiàng", english: "phenomenon", chars: [
+                { text: "现", missingText: "见", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "象", missingText: "家", clip: "polygon(0 0, 100% 0, 100% 30%, 0 30%)" }  
+            ]},
+            { word: "大幅度", pinyin: "dà fú dù", english: "significantly", chars: [
+                { text: "大", missingText: "人", clip: "polygon(0 0, 100% 0, 100% 40%, 0 40%)" }, 
+                { text: "幅", missingText: "畐", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "度", missingText: "广", clip: "polygon(25% 25%, 100% 25%, 100% 100%, 25% 100%)" }  
+            ]},
+            { word: "降低", pinyin: "jiàng dī", english: "reduce", chars: [
+                { text: "降", missingText: "夅", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "低", missingText: "氐", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+
+            // 图 3 词汇
+            { word: "费用", pinyin: "fèi yòng", english: "cost", chars: [
+                { text: "费", missingText: "贝", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }, 
+                { text: "用", missingText: "丨", clip: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }  
+            ]},
+            { word: "软件", pinyin: "ruǎn jiàn", english: "software", chars: [
+                { text: "软", missingText: "欠", clip: "polygon(0 0, 45% 0, 45% 100%, 0 100%)" }, 
+                { text: "件", missingText: "牛", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+            { word: "需求", pinyin: "xū qiú", english: "demand", chars: [
+                { text: "需", missingText: "而", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
+                { text: "求", missingText: "氺", clip: "polygon(0 0, 100% 0, 100% 30%, 0 30%)" }  
+            ]},
+            { word: "优化", pinyin: "yōu huà", english: "optimize", chars: [
+                { text: "优", missingText: "尤", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "化", missingText: "匕", clip: "polygon(0 0, 40% 0, 40% 100%, 0 100%)" }  
+            ]},
+            { word: "线路", pinyin: "xiàn lù", english: "route", chars: [
+                { text: "线", missingText: "戋", clip: "polygon(0 0, 40% 0, 40% 100%, 0 100%)" }, 
+                { text: "路", missingText: "各", clip: "polygon(0 0, 45% 0, 45% 100%, 0 100%)" }  
+            ]},
+            { word: "节约", pinyin: "jié yuē", english: "save", chars: [
+                { text: "节", missingText: "卩", clip: "polygon(0 0, 100% 0, 100% 35%, 0 35%)" }, 
+                { text: "约", missingText: "勺", clip: "polygon(0 0, 40% 0, 40% 100%, 0 100%)" }  
+            ]},
+            { word: "乘车", pinyin: "chéng chē", english: "ride", chars: [
+                { text: "乘", missingText: "北", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
+                { text: "车", missingText: "丨", clip: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }  
+            ]},
+            { word: "省钱", pinyin: "shěng qián", english: "save money", chars: [
+                { text: "省", missingText: "目", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, 
+                { text: "钱", missingText: "戋", clip: "polygon(0 0, 45% 0, 45% 100%, 0 100%)" }  
+            ]},
+            { word: "节省", pinyin: "jié shěng", english: "save", chars: [
+                { text: "节", missingText: "卩", clip: "polygon(0 0, 100% 0, 100% 35%, 0 35%)" }, 
+                { text: "省", missingText: "目", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }  
+            ]},
+            { word: "欢迎", pinyin: "huān yíng", english: "welcome", chars: [
+                { text: "欢", missingText: "欠", clip: "polygon(0 0, 40% 0, 40% 100%, 0 100%)" }, 
+                { text: "迎", missingText: "辶", clip: "polygon(30% 0, 100% 0, 100% 80%, 30% 80%)" }  
+            ]},
+            { word: "分享", pinyin: "fēn xiǎng", english: "share", chars: [
+                { text: "分", missingText: "刀", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
+                { text: "享", missingText: "子", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  
+            ]},
+            { word: "播放", pinyin: "bō fàng", english: "play", chars: [
+                { text: "播", missingText: "釆田", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "放", missingText: "攵", clip: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" }  
+            ]},
+            { word: "评论", pinyin: "píng lùn", english: "comment", chars: [
+                { text: "评", missingText: "平", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "论", missingText: "仑", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }  
+            ]},
+            { word: "订阅", pinyin: "dìng yuè", english: "subscribe", chars: [
+                { text: "订", missingText: "丁", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "阅", missingText: "门", clip: "polygon(20% 25%, 80% 25%, 80% 100%, 20% 100%)" }  
+            ]},
+            { word: "价格", pinyin: "jià gé", english: "price", chars: [
+                { text: "价", missingText: "介", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                { text: "格", missingText: "各", clip: "polygon(0 0, 45% 0, 45% 100%, 0 100%)" }  
+            ]}
         ];
 
         let currentIndex = 0;
@@ -236,17 +384,14 @@
         function renderWord() {
             const currentItem = vocabData[currentIndex];
             
-            // 重置状态
             isPartsRevealed = false;
             isWordRevealed = false;
             document.getElementById('toggle-parts-btn').innerText = "🔍 Reveal Parts";
             document.getElementById('toggle-word-btn').innerText = "✨ Show Full Word";
             
-            // 渲染提示
             document.getElementById('hint-en').innerText = currentItem.english;
             document.getElementById('hint-py').innerText = currentItem.pinyin;
             
-            // 渲染米字格和文字
             const displayArea = document.getElementById('word-display');
             displayArea.innerHTML = '';
             
@@ -254,7 +399,6 @@
                 const charGroup = document.createElement('div');
                 charGroup.className = 'char-group';
 
-                // 侧边提示文本
                 const sideHint = document.createElement('div');
                 sideHint.className = 'side-hint';
                 sideHint.innerText = charObj.missingText;
@@ -262,7 +406,6 @@
                 const mizige = document.createElement('div');
                 mizige.className = 'mizige';
                 
-                // 黑色的保留部件（初始被裁剪）
                 const layerGiven = document.createElement('div');
                 layerGiven.className = 'char-layer layer-given';
                 layerGiven.innerText = charObj.text;
@@ -270,11 +413,13 @@
                 
                 mizige.appendChild(layerGiven);
 
-                // 核心排版逻辑：左字提示在左，右字提示在右
-                if (index === 0) {
+                // 核心排版：根据字符在词语中的前半部分还是后半部分决定提示位置
+                if (index < currentItem.chars.length / 2) {
+                    // 左侧字符，提示悬浮在左侧
                     charGroup.appendChild(sideHint);
                     charGroup.appendChild(mizige);
                 } else {
+                    // 右侧字符，提示悬浮在右侧
                     charGroup.appendChild(mizige);
                     charGroup.appendChild(sideHint);
                 }
@@ -282,13 +427,11 @@
                 displayArea.appendChild(charGroup);
             });
 
-            // 更新进度
             document.getElementById('progress-text').innerText = `Word ${currentIndex + 1} / ${vocabData.length}`;
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabData.length - 1);
         }
 
-        // 切换悬浮提示
         function toggleMissingParts() {
             isPartsRevealed = !isPartsRevealed;
             const hints = document.querySelectorAll('.side-hint');
@@ -304,13 +447,11 @@
 
             btn.innerText = isPartsRevealed ? "🙈 Hide Parts" : "🔍 Reveal Parts";
             
-            // 如果揭晓了部件，需确保全字模式关闭
             if (isPartsRevealed && isWordRevealed) {
                 toggleFullWord(); 
             }
         }
 
-        // 切换全黑汉字
         function toggleFullWord() {
             isWordRevealed = !isWordRevealed;
             const givenLayers = document.querySelectorAll('.layer-given');
@@ -326,7 +467,6 @@
 
             btn.innerText = isWordRevealed ? "🙈 Hide Full Word" : "✨ Show Full Word";
             
-            // 如果展示了全字，需确保部件模式关闭
             if (isWordRevealed && isPartsRevealed) {
                 toggleMissingParts();
             }
