@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fading Writer - 田字格版</title>
+    <title>Fading Writer - 田字格重构版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -80,8 +80,8 @@
 
         /* 核心：田字格 CSS 绘制 */
         .tianzige {
-            width: 140px;
-            height: 140px;
+            width: 160px;
+            height: 160px;
             border: 3px solid #ef4444; /* 红色外框 */
             position: relative;
             background-color: transparent;
@@ -110,52 +110,53 @@
             transform: translateX(-50%);
         }
 
-        .tianzige-content {
+        /* 网格内容层：精确控制部件位置 */
+        .tzg-grid {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             display: grid;
-            z-index: 1; /* 确保文字在虚线之上 */
+            grid-template-columns: 50% 50%;
+            grid-template-rows: 50% 50%;
+            z-index: 2; /* 在虚线之上 */
         }
-
-        /* 左右与上下结构的网络划分 */
-        .layout-lr { grid-template-columns: 1fr 1fr; }
-        .layout-tb { grid-template-rows: 1fr 1fr; }
 
         .part-box {
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 3.5rem; /* 根据半格大小调整 */
-            width: 100%;
-            height: 100%;
-        }
-
-        .part-given {
-            color: #1e293b; /* 给定的部件颜色较深 */
-        }
-
-        .part-missing {
-            color: transparent; /* 默认隐藏 */
+            font-size: 4.5rem;
             transition: color 0.2s ease;
         }
 
-        /* 揭晓状态 */
+        /* 空间占位类 */
+        .pos-left { grid-column: 1 / 2; grid-row: 1 / 3; }
+        .pos-right { grid-column: 2 / 3; grid-row: 1 / 3; }
+        .pos-top { grid-column: 1 / 3; grid-row: 1 / 2; }
+        .pos-bottom { grid-column: 1 / 3; grid-row: 2 / 3; }
+
+        /* 状态颜色类 */
+        .part-given {
+            color: #1e293b; 
+        }
+        .part-missing {
+            color: transparent; /* 默认隐藏 */
+        }
         .part-missing.revealed {
-            color: #3b82f6; /* 揭晓后显示蓝色，方便区分 */
+            color: #3b82f6; /* 揭晓后显示蓝色，原位出现 */
         }
 
         /* 完整汉字展示 */
         .full-word-display {
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 3.5rem;
+            font-size: 4rem;
             color: #10b981;
             letter-spacing: 20px;
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.3s ease;
             margin-top: 10px;
-            height: 60px;
+            height: 70px;
         }
         .full-word-display.show {
             opacity: 1;
@@ -229,34 +230,34 @@
     </div>
 
     <script>
-        // 数据结构：p1 是第一个位置（左或上），p2 是第二个位置（右或下）
+        // 数据结构：精确定义组件的位置 (pos: 'left', 'right', 'top', 'bottom')
         const vocabData = [
             {
                 word: "报名", pinyin: "bào míng", english: "sign up",
                 chars: [
-                    { full: "报", layout: "lr", p1: {text: "扌", type: "given"}, p2: {text: "卩又", type: "missing"} },
-                    { full: "名", layout: "tb", p1: {text: "夕", type: "given"}, p2: {text: "口", type: "missing"} }
+                    { full: "报", p1: {text: "扌", type: "given", pos: "left"}, p2: {text: "卩又", type: "missing", pos: "right"} },
+                    { full: "名", p1: {text: "夕", type: "given", pos: "top"}, p2: {text: "口", type: "missing", pos: "bottom"} }
                 ]
             },
             {
                 word: "体验", pinyin: "tǐ yàn", english: "experience",
                 chars: [
-                    { full: "体", layout: "lr", p1: {text: "亻", type: "given"}, p2: {text: "本", type: "missing"} },
-                    { full: "验", layout: "lr", p1: {text: "马", type: "given"}, p2: {text: "佥", type: "missing"} }
+                    { full: "体", p1: {text: "亻", type: "given", pos: "left"}, p2: {text: "本", type: "missing", pos: "right"} },
+                    { full: "验", p1: {text: "马", type: "given", pos: "left"}, p2: {text: "佥", type: "missing", pos: "right"} }
                 ]
             },
             {
                 word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
                 chars: [
-                    { full: "乘", layout: "tb", p1: {text: "禾", type: "given"}, p2: {text: "北", type: "missing"} }, 
-                    { full: "坐", layout: "tb", p1: {text: "从", type: "given"}, p2: {text: "土", type: "missing"} }
+                    { full: "乘", p1: {text: "禾", type: "given", pos: "top"}, p2: {text: "北", type: "missing", pos: "bottom"} }, 
+                    { full: "坐", p1: {text: "从", type: "given", pos: "top"}, p2: {text: "土", type: "missing", pos: "bottom"} }
                 ]
             },
             {
                 word: "全球", pinyin: "quán qiú", english: "global",
                 chars: [
-                    { full: "全", layout: "tb", p1: {text: "人", type: "given"}, p2: {text: "王", type: "missing"} },
-                    { full: "球", layout: "lr", p1: {text: "王", type: "given"}, p2: {text: "求", type: "missing"} }
+                    { full: "全", p1: {text: "人", type: "given", pos: "top"}, p2: {text: "王", type: "missing", pos: "bottom"} },
+                    { full: "球", p1: {text: "王", type: "given", pos: "left"}, p2: {text: "求", type: "missing", pos: "right"} }
                 ]
             }
         ];
@@ -286,22 +287,22 @@
                 const tianzige = document.createElement('div');
                 tianzige.className = 'tianzige';
                 
-                const contentGrid = document.createElement('div');
-                contentGrid.className = `tianzige-content layout-${charObj.layout}`;
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'tzg-grid';
                 
-                // 处理 P1 (左或上)
+                // 处理 P1
                 const p1Div = document.createElement('div');
-                p1Div.className = `part-box part-${charObj.p1.type}`;
+                p1Div.className = `part-box pos-${charObj.p1.pos} part-${charObj.p1.type}`;
                 p1Div.innerText = charObj.p1.text;
                 
-                // 处理 P2 (右或下)
+                // 处理 P2
                 const p2Div = document.createElement('div');
-                p2Div.className = `part-box part-${charObj.p2.type}`;
+                p2Div.className = `part-box pos-${charObj.p2.pos} part-${charObj.p2.type}`;
                 p2Div.innerText = charObj.p2.text;
                 
-                contentGrid.appendChild(p1Div);
-                contentGrid.appendChild(p2Div);
-                tianzige.appendChild(contentGrid);
+                gridDiv.appendChild(p1Div);
+                gridDiv.appendChild(p2Div);
+                tianzige.appendChild(gridDiv);
                 displayArea.appendChild(tianzige);
             });
 
