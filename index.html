@@ -25,7 +25,7 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 700px;
+            max-width: 800px;
             align-items: center;
             margin-bottom: 30px;
         }
@@ -42,7 +42,7 @@
         /* 游戏主体容器 */
         .game-area {
             width: 100%;
-            max-width: 700px;
+            max-width: 800px;
             background: white;
             border: 2px solid #e2e8f0;
             border-radius: 16px;
@@ -71,29 +71,30 @@
             letter-spacing: 2px;
         }
 
-        /* 整体展示区布局 */
+        /* 米字格与提示展示区 */
         .word-display {
             display: flex;
-            gap: 30px; /* 两个字组之间的间距 */
-            margin-bottom: 20px;
+            gap: 30px;
+            margin-bottom: 40px;
             justify-content: center;
+            width: 100%;
         }
 
-        /* 单个汉字组合（包含外部提示 + 米字格） */
         .char-group {
             display: flex;
             align-items: center;
-            gap: 15px; /* 外部提示和米字格的间距 */
+            gap: 20px;
         }
 
-        /* 外部蓝色部件提示 */
+        /* 外部悬浮提示部件 */
         .side-hint {
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
             font-size: 3.5rem;
             color: #3b82f6;
+            font-weight: bold;
             opacity: 0;
             transition: opacity 0.3s ease;
-            width: 70px;
+            min-width: 60px;
             text-align: center;
             user-select: none;
         }
@@ -101,7 +102,7 @@
             opacity: 1;
         }
 
-        /* 米字格 SVG 背景绘制 */
+        /* 核心：米字格 SVG 背景绘制 */
         .mizige {
             width: 160px;
             height: 160px;
@@ -113,11 +114,10 @@
             align-items: center;
             overflow: hidden;
             background-color: white;
-            flex-shrink: 0;
         }
 
-        /* 黑色保留部件（通过 clip-path 裁剪掉不需要的部分） */
-        .layer-given {
+        /* 汉字叠加技术 */
+        .char-layer {
             position: absolute;
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
             font-size: 130px;
@@ -128,6 +128,10 @@
             user-select: none;
             top: 0;
             left: 0;
+        }
+
+        /* 表层：黑色的保留部件。通过 clip-path 裁剪掉不需要的部分 */
+        .layer-given {
             color: #1e293b;
             z-index: 2;
             transition: clip-path 0.4s ease;
@@ -193,34 +197,34 @@
     </div>
 
     <script>
-        // 数据结构：新增 missing 字段用于外部提示。clip 依然控制黑色部件的精确留存位置。
+        // 数据结构：加入了 missingText 用于外部提示展示
         const vocabData = [
             {
                 word: "报名", pinyin: "bào míng", english: "sign up",
                 chars: [
-                    { text: "报", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)", missing: "卩又" },
-                    { text: "名", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)", missing: "口" }
+                    { text: "报", missingText: "卩又", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)" }, 
+                    { text: "名", missingText: "口", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)" }  
                 ]
             },
             {
                 word: "体验", pinyin: "tǐ yàn", english: "experience",
                 chars: [
-                    { text: "体", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)", missing: "本" },
-                    { text: "验", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)", missing: "佥" }
+                    { text: "体", missingText: "本", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, 
+                    { text: "验", missingText: "佥", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)" }  
                 ]
             },
             {
                 word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
                 chars: [
-                    { text: "乘", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)", missing: "北" },
-                    { text: "坐", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)", missing: "土" }
+                    { text: "乘", missingText: "北", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, 
+                    { text: "坐", missingText: "土", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  
                 ]
             },
             {
                 word: "全球", pinyin: "quán qiú", english: "global",
                 chars: [
-                    { text: "全", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)", missing: "王" },
-                    { text: "球", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)", missing: "求" }
+                    { text: "全", missingText: "王", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, 
+                    { text: "球", missingText: "求", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)" }  
                 ]
             }
         ];
@@ -242,20 +246,23 @@
             document.getElementById('hint-en').innerText = currentItem.english;
             document.getElementById('hint-py').innerText = currentItem.pinyin;
             
-            // 渲染展示区
+            // 渲染米字格和文字
             const displayArea = document.getElementById('word-display');
             displayArea.innerHTML = '';
             
             currentItem.chars.forEach((charObj, index) => {
-                // 创建包裹提示与格子的容器
-                const group = document.createElement('div');
-                group.className = 'char-group';
+                const charGroup = document.createElement('div');
+                charGroup.className = 'char-group';
 
-                // 创建米字格
+                // 侧边提示文本
+                const sideHint = document.createElement('div');
+                sideHint.className = 'side-hint';
+                sideHint.innerText = charObj.missingText;
+
                 const mizige = document.createElement('div');
                 mizige.className = 'mizige';
                 
-                // 表层：黑色给定部件
+                // 黑色的保留部件（初始被裁剪）
                 const layerGiven = document.createElement('div');
                 layerGiven.className = 'char-layer layer-given';
                 layerGiven.innerText = charObj.text;
@@ -263,21 +270,16 @@
                 
                 mizige.appendChild(layerGiven);
 
-                // 创建外部蓝色提示部件
-                const hint = document.createElement('div');
-                hint.className = 'side-hint';
-                hint.innerText = charObj.missing;
-
-                // 左边汉字的提示放在米字格左边，右边汉字的提示放在米字格右边
+                // 核心排版逻辑：左字提示在左，右字提示在右
                 if (index === 0) {
-                    group.appendChild(hint);
-                    group.appendChild(mizige);
+                    charGroup.appendChild(sideHint);
+                    charGroup.appendChild(mizige);
                 } else {
-                    group.appendChild(mizige);
-                    group.appendChild(hint);
+                    charGroup.appendChild(mizige);
+                    charGroup.appendChild(sideHint);
                 }
 
-                displayArea.appendChild(group);
+                displayArea.appendChild(charGroup);
             });
 
             // 更新进度
@@ -286,7 +288,7 @@
             document.getElementById('next-btn').disabled = (currentIndex === vocabData.length - 1);
         }
 
-        // 切换揭晓/隐藏外部提示部件
+        // 切换悬浮提示
         function toggleMissingParts() {
             isPartsRevealed = !isPartsRevealed;
             const hints = document.querySelectorAll('.side-hint');
@@ -302,13 +304,13 @@
 
             btn.innerText = isPartsRevealed ? "🙈 Hide Parts" : "🔍 Reveal Parts";
             
-            // 互斥逻辑：揭晓提示时，自动关闭全字显示
+            // 如果揭晓了部件，需确保全字模式关闭
             if (isPartsRevealed && isWordRevealed) {
                 toggleFullWord(); 
             }
         }
 
-        // 切换揭晓/隐藏完整汉字
+        // 切换全黑汉字
         function toggleFullWord() {
             isWordRevealed = !isWordRevealed;
             const givenLayers = document.querySelectorAll('.layer-given');
@@ -324,7 +326,7 @@
 
             btn.innerText = isWordRevealed ? "🙈 Hide Full Word" : "✨ Show Full Word";
             
-            // 互斥逻辑：展示全字时，自动关闭外部提示
+            // 如果展示了全字，需确保部件模式关闭
             if (isWordRevealed && isPartsRevealed) {
                 toggleMissingParts();
             }
