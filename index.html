@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fading Writer - 米字格精准裁剪版</title>
+    <title>Fading Writer - 外部提示版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -71,18 +71,41 @@
             letter-spacing: 2px;
         }
 
-        /* 米字格展示区 */
+        /* 整体展示区布局 */
         .word-display {
             display: flex;
-            gap: 40px;
+            gap: 30px; /* 两个字组之间的间距 */
             margin-bottom: 20px;
+            justify-content: center;
         }
 
-        /* 核心：米字格 SVG 背景绘制，完美复刻截图 */
+        /* 单个汉字组合（包含外部提示 + 米字格） */
+        .char-group {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* 外部提示和米字格的间距 */
+        }
+
+        /* 外部蓝色部件提示 */
+        .side-hint {
+            font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
+            font-size: 3.5rem;
+            color: #3b82f6;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            width: 70px;
+            text-align: center;
+            user-select: none;
+        }
+        .side-hint.show {
+            opacity: 1;
+        }
+
+        /* 米字格 SVG 背景绘制 */
         .mizige {
             width: 160px;
             height: 160px;
-            border: 2px solid #ef4444; /* 红色外框 */
+            border: 2px solid #ef4444;
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><line x1='0' y1='80' x2='160' y2='80' stroke='%23ef4444' stroke-width='1.5' stroke-dasharray='6,4'/><line x1='80' y1='0' x2='80' y2='160' stroke='%23ef4444' stroke-width='1.5' stroke-dasharray='6,4'/><line x1='0' y1='0' x2='160' y2='160' stroke='%23ef4444' stroke-width='1' stroke-dasharray='3,4'/><line x1='160' y1='0' x2='0' y2='160' stroke='%23ef4444' stroke-width='1' stroke-dasharray='3,4'/></svg>");
             position: relative;
             display: flex;
@@ -90,13 +113,14 @@
             align-items: center;
             overflow: hidden;
             background-color: white;
+            flex-shrink: 0;
         }
 
-        /* 双层汉字叠加技术 */
-        .char-layer {
+        /* 黑色保留部件（通过 clip-path 裁剪掉不需要的部分） */
+        .layer-given {
             position: absolute;
             font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
-            font-size: 130px; /* 字体大小适配160px的格子 */
+            font-size: 130px;
             line-height: 160px;
             text-align: center;
             width: 100%;
@@ -104,21 +128,6 @@
             user-select: none;
             top: 0;
             left: 0;
-        }
-
-        /* 底层：蓝色的缺失部件。初始透明度为0（完全空白） */
-        .layer-revealed {
-            color: #3b82f6; /* 揭晓时的蓝色 */
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1;
-        }
-        .layer-revealed.show {
-            opacity: 1; /* 点击 Reveal 后显示 */
-        }
-
-        /* 表层：黑色的保留部件。通过 clip-path 裁剪掉不需要的部分 */
-        .layer-given {
             color: #1e293b;
             z-index: 2;
             transition: clip-path 0.4s ease;
@@ -184,35 +193,34 @@
     </div>
 
     <script>
-        // 数据结构：利用 clip-path 百分比精确控制只显示汉字的哪一部分
-        // 比如 报：polygon(0 0, 42% 0, 42% 100%, 0 100%) 代表只显示左边 42% 的区域（即"扌"）
+        // 数据结构：新增 missing 字段用于外部提示。clip 依然控制黑色部件的精确留存位置。
         const vocabData = [
             {
                 word: "报名", pinyin: "bào míng", english: "sign up",
                 chars: [
-                    { text: "报", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)" }, // 留左
-                    { text: "名", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)" }  // 留上
+                    { text: "报", clip: "polygon(0 0, 42% 0, 42% 100%, 0 100%)", missing: "卩又" },
+                    { text: "名", clip: "polygon(0 0, 100% 0, 100% 52%, 0 52%)", missing: "口" }
                 ]
             },
             {
                 word: "体验", pinyin: "tǐ yàn", english: "experience",
                 chars: [
-                    { text: "体", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)" }, // 留左
-                    { text: "验", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)" }  // 留左
+                    { text: "体", clip: "polygon(0 0, 35% 0, 35% 100%, 0 100%)", missing: "本" },
+                    { text: "验", clip: "polygon(0 0, 43% 0, 43% 100%, 0 100%)", missing: "佥" }
                 ]
             },
             {
                 word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
                 chars: [
-                    { text: "乘", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)" }, // 留上部禾
-                    { text: "坐", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)" }  // 留上部从
+                    { text: "乘", clip: "polygon(0 0, 100% 0, 100% 45%, 0 45%)", missing: "北" },
+                    { text: "坐", clip: "polygon(0 0, 100% 0, 100% 60%, 0 60%)", missing: "土" }
                 ]
             },
             {
                 word: "全球", pinyin: "quán qiú", english: "global",
                 chars: [
-                    { text: "全", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }, // 留上部人
-                    { text: "球", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)" }  // 留左部王
+                    { text: "全", clip: "polygon(0 0, 100% 0, 100% 50%, 0 50%)", missing: "王" },
+                    { text: "球", clip: "polygon(0 0, 38% 0, 38% 100%, 0 100%)", missing: "求" }
                 ]
             }
         ];
@@ -234,28 +242,42 @@
             document.getElementById('hint-en').innerText = currentItem.english;
             document.getElementById('hint-py').innerText = currentItem.pinyin;
             
-            // 渲染米字格和文字
+            // 渲染展示区
             const displayArea = document.getElementById('word-display');
             displayArea.innerHTML = '';
             
-            currentItem.chars.forEach(charObj => {
+            currentItem.chars.forEach((charObj, index) => {
+                // 创建包裹提示与格子的容器
+                const group = document.createElement('div');
+                group.className = 'char-group';
+
+                // 创建米字格
                 const mizige = document.createElement('div');
                 mizige.className = 'mizige';
                 
-                // 底层：蓝色完整汉字（初始透明度为0，完全空白）
-                const layerRevealed = document.createElement('div');
-                layerRevealed.className = 'char-layer layer-revealed';
-                layerRevealed.innerText = charObj.text;
-                
-                // 表层：黑色完整汉字（初始被裁剪，只露出给定部分）
+                // 表层：黑色给定部件
                 const layerGiven = document.createElement('div');
                 layerGiven.className = 'char-layer layer-given';
                 layerGiven.innerText = charObj.text;
                 layerGiven.style.clipPath = charObj.clip;
                 
-                mizige.appendChild(layerRevealed);
                 mizige.appendChild(layerGiven);
-                displayArea.appendChild(mizige);
+
+                // 创建外部蓝色提示部件
+                const hint = document.createElement('div');
+                hint.className = 'side-hint';
+                hint.innerText = charObj.missing;
+
+                // 左边汉字的提示放在米字格左边，右边汉字的提示放在米字格右边
+                if (index === 0) {
+                    group.appendChild(hint);
+                    group.appendChild(mizige);
+                } else {
+                    group.appendChild(mizige);
+                    group.appendChild(hint);
+                }
+
+                displayArea.appendChild(group);
             });
 
             // 更新进度
@@ -264,29 +286,29 @@
             document.getElementById('next-btn').disabled = (currentIndex === vocabData.length - 1);
         }
 
-        // 切换揭晓/隐藏蓝色空白部分
+        // 切换揭晓/隐藏外部提示部件
         function toggleMissingParts() {
             isPartsRevealed = !isPartsRevealed;
-            const revealedLayers = document.querySelectorAll('.layer-revealed');
+            const hints = document.querySelectorAll('.side-hint');
             const btn = document.getElementById('toggle-parts-btn');
             
-            revealedLayers.forEach(layer => {
+            hints.forEach(hint => {
                 if (isPartsRevealed) {
-                    layer.classList.add('show');
+                    hint.classList.add('show');
                 } else {
-                    layer.classList.remove('show');
+                    hint.classList.remove('show');
                 }
             });
 
             btn.innerText = isPartsRevealed ? "🙈 Hide Parts" : "🔍 Reveal Parts";
             
-            // 如果揭晓了部件，需确保全字模式关闭
+            // 互斥逻辑：揭晓提示时，自动关闭全字显示
             if (isPartsRevealed && isWordRevealed) {
                 toggleFullWord(); 
             }
         }
 
-        // 切换揭晓/隐藏全黑汉字
+        // 切换揭晓/隐藏完整汉字
         function toggleFullWord() {
             isWordRevealed = !isWordRevealed;
             const givenLayers = document.querySelectorAll('.layer-given');
@@ -302,7 +324,7 @@
 
             btn.innerText = isWordRevealed ? "🙈 Hide Full Word" : "✨ Show Full Word";
             
-            // 如果展示了全字，需确保部件模式关闭
+            // 互斥逻辑：展示全字时，自动关闭外部提示
             if (isWordRevealed && isPartsRevealed) {
                 toggleMissingParts();
             }
