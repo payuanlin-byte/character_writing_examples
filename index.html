@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hanzi Builder</title>
+    <title>Fading Writer</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f4f7f6;
+            background-color: #f8fafc;
             color: #333;
             margin: 0;
             padding: 40px 20px;
@@ -32,96 +32,137 @@
         .progress {
             font-size: 1.1rem;
             font-weight: bold;
-            color: #555;
+            color: #64748b;
             background: white;
             padding: 8px 16px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        
+
         /* 游戏主体容器 */
         .game-area {
-            position: relative;
             width: 100%;
             max-width: 700px;
-            min-height: 250px;
             background: white;
-            border: 2px dashed #cbd5e0;
+            border: 2px solid #e2e8f0;
             border-radius: 16px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-            box-sizing: border-box;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        /* 散落的部件样式 */
-        .components-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.5s ease;
-        }
-        .component-card {
-            background: #e3f2fd;
-            color: #1976d2;
-            font-size: 2.5rem;
-            font-family: "Kaiti SC", "Kaiti", serif;
-            font-weight: bold;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(25, 118, 210, 0.15);
-            border: 2px solid #bbdefb;
-            transition: transform 0.5s ease, opacity 0.5s ease;
-        }
-        
-        /* 组合后的答案样式 */
-        .answer-container {
-            position: absolute;
             display: flex;
             flex-direction: column;
             align-items: center;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.5s ease;
-            pointer-events: none;
-        }
-        .answer-word {
-            font-size: 5rem;
-            font-family: "Kaiti SC", "Kaiti", serif;
-            color: #2c3e50;
-            letter-spacing: 10px;
-            margin-bottom: 10px;
-        }
-        .answer-hint {
-            font-size: 1.5rem;
-            color: #e53e3e;
-            font-weight: bold;
-            background: #fed7d7;
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
         }
 
-        /* 动画激活状态 */
-        .game-area.combined .components-container {
-            transform: scale(0);
-            opacity: 0;
+        .hint-section {
+            text-align: center;
+            margin-bottom: 40px;
         }
-        .game-area.combined .answer-container {
+        .hint-en {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e53e3e;
+            margin-bottom: 5px;
+        }
+        .hint-py {
+            font-size: 1.2rem;
+            color: #718096;
+            letter-spacing: 2px;
+        }
+
+        /* 汉字结构展示区 */
+        .word-display {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .char-container {
+            display: flex;
+            border: 3px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 10px;
+            background: #f1f5f9;
+        }
+
+        /* 左右结构 */
+        .layout-lr {
+            flex-direction: row;
+            align-items: center;
+        }
+        /* 上下结构 */
+        .layout-tb {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .part-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
+            font-size: 4rem;
+            width: 80px;
+            height: 80px;
+            margin: 5px;
+        }
+
+        .part-given {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .part-missing {
+            background: #fff;
+            border: 2px solid #94a3b8;
+            border-radius: 8px;
+            color: transparent; /* 默认隐藏填空部分 */
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .part-missing::after {
+            content: '?';
+            position: absolute;
+            color: #cbd5e0;
+            font-family: sans-serif;
+            font-size: 2rem;
+        }
+
+        /* 揭晓状态 */
+        .char-container.revealed .part-missing {
+            color: #e53e3e; /* 揭晓后显示红色 */
+            border-color: #e53e3e;
+            background: #fff5f5;
+        }
+        .char-container.revealed .part-missing::after {
+            display: none;
+        }
+
+        /* 完整汉字展示 */
+        .full-word-display {
+            font-family: "Kaiti SC", "Kaiti", "STKaiti", "楷体", serif;
+            font-size: 3rem;
+            color: #2d3748;
+            letter-spacing: 15px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+            margin-top: 20px;
+            height: 50px;
+        }
+        .full-word-display.show {
             opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
+            transform: translateY(0);
         }
 
         /* 底部操作按钮 */
         .controls {
             display: flex;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .btn {
             padding: 12px 25px;
@@ -134,154 +175,151 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .btn-nav {
-            background-color: #718096;
+            background-color: #64748b;
             color: white;
         }
-        .btn-nav:hover { background-color: #4a5568; }
+        .btn-nav:hover { background-color: #475569; }
         .btn-nav:disabled { background-color: #cbd5e0; cursor: not-allowed; box-shadow: none; }
         
-        .btn-combine {
-            background-color: #48bb78;
+        .btn-action {
+            background-color: #3b82f6;
             color: white;
-            font-size: 1.2rem;
-            padding: 12px 40px;
         }
-        .btn-combine:hover { background-color: #38a169; }
+        .btn-action:hover { background-color: #2563eb; }
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-success:hover { background-color: #059669; }
     </style>
 </head>
 <body>
 
-    <h1>🧩 Hanzi Builder</h1>
+    <h1>📝 Fading Writer</h1>
 
     <div class="header-controls">
-        <div class="progress" id="progress-text">Word 1 / 45</div>
+        <div class="progress" id="progress-text">Word 1 / 4</div>
     </div>
 
     <!-- 游戏展示区 -->
-    <div class="game-area" id="game-area">
-        <!-- 散落部件 -->
-        <div class="components-container" id="components-display"></div>
-        
-        <!-- 组合答案 -->
-        <div class="answer-container">
-            <div class="answer-word" id="answer-word"></div>
-            <div class="answer-hint" id="answer-hint"></div>
+    <div class="game-area">
+        <div class="hint-section">
+            <div class="hint-en" id="hint-en">sign up</div>
+            <div class="hint-py" id="hint-py">(bào míng)</div>
         </div>
+
+        <div class="word-display" id="word-display">
+            <!-- JS 动态生成汉字结构 -->
+        </div>
+
+        <div class="full-word-display" id="full-word-display"></div>
     </div>
 
     <!-- 按钮控制区 -->
     <div class="controls">
         <button class="btn btn-nav" id="prev-btn" onclick="changeWord(-1)">⬅️ Prev</button>
-        <button class="btn btn-combine" id="combine-btn" onclick="combineComponents()">🧩 Combine</button>
+        <button class="btn btn-action" onclick="revealMissing()">🔍 Reveal Parts</button>
+        <button class="btn btn-success" onclick="showFullWord()">✨ Show Full Word</button>
         <button class="btn btn-nav" id="next-btn" onclick="changeWord(1)">Next ➡️</button>
     </div>
 
     <script>
-        // 45个词汇及其精细拆解部件库
+        // 数据结构：精确定义每个字的间架结构 (layout) 和保留部件 (given)
+        // layout: 'lr' (左右结构), 'tb' (上下结构)
         const vocabData = [
-            { word: '费用', components: ['弗', '贝', '用'], hint: 'cost' },
-            { word: '价格', components: ['亻', '介', '木', '各'], hint: 'price' },
-            { word: '软件', components: ['车', '欠', '亻', '牛'], hint: 'software' },
-            { word: '需求', components: ['雨', '而', '求'], hint: 'demand' },
-            { word: '优化', components: ['亻', '尤', '亻', '匕'], hint: 'optimize' },
-            { word: '线路', components: ['纟', '泉', '足', '各'], hint: 'route' },
-            { word: '节约', components: ['艹', '卩', '纟', '勺'], hint: 'save' },
-            { word: '乘车', components: ['禾', '北', '车'], hint: 'ride' },
-            { word: '省钱', components: ['少', '目', '钅', '戋'], hint: 'save money' },
-            { word: '节省', components: ['艹', '卩', '少', '目'], hint: 'save' },
-            { word: '欢迎', components: ['又', '欠', '辶', '卬'], hint: 'welcome' },
-            { word: '分享', components: ['八', '刀', '亠', '口', '子'], hint: 'share' },
-            { word: '播放', components: ['扌', '方', '攵'], hint: 'play' }, 
-            { word: '评论', components: ['讠', '平', '讠', '仑'], hint: 'comment' },
-            { word: '订阅', components: ['钅', '丁', '门', '兑'], hint: 'subscribe' },
-            
-            { word: '转动', components: ['车', '专', '云', '力'], hint: 'turn' },
-            { word: '神奇', components: ['礻', '申', '大', '可'], hint: 'magical' },
-            { word: '鬼', components: ['鬼'], hint: 'ghost' },
-            { word: '适应', components: ['辶', '舌', '广', '兴'], hint: 'adapt' },
-            { word: '代替', components: ['亻', '弋', '夫', '夫', '曰'], hint: 'replace' },
-            { word: '接送', components: ['扌', '妾', '辶', '关'], hint: 'pick up/drop off' },
-            { word: '发明', components: ['弓', '殳', '日', '月'], hint: 'invention' },
-            { word: '改变', components: ['己', '攵', '亦', '又'], hint: 'change' },
-            { word: '城市', components: ['土', '成', '亠', '巾'], hint: 'city' },
-            { word: '环境', components: ['王', '不', '土', '竟'], hint: 'environment' },
-            { word: '缓解', components: ['纟', '爰', '角', '刀', '牛'], hint: 'relieve' },
-            { word: '道路', components: ['辶', '首', '足', '各'], hint: 'road' },
-            { word: '拥堵', components: ['扌', '用', '土', '者'], hint: 'congestion' },
-            { word: '现象', components: ['王', '见', '⺈', '象'], hint: 'phenomenon' },
-            { word: '大幅度', components: ['大', '巾', '畐', '广', '廿', '又'], hint: 'significantly' }, 
-            { word: '降低', components: ['阝', '夅', '亻', '氐'], hint: 'reduce' },
-
-            { word: '报名', components: ['扌', '卩', '又', '夕', '口'], hint: 'sign up' },
-            { word: '体验', components: ['亻', '本', '马', '佥'], hint: 'experience' },
-            { word: '乘坐', components: ['禾', '北', '人', '人', '土'], hint: 'take (a ride)' },
-            { word: '全球', components: ['人', '王', '王', '求'], hint: 'global' },
-            { word: '首次', components: ['首', '冫', '欠'], hint: 'first time' },
-            { word: '人数', components: ['人', '米', '女', '攵'], hint: 'number of people' },
-            { word: '增加', components: ['土', '曾', '力', '口'], hint: 'increase' },
-            { word: '一倍', components: ['一', '亻', '立', '口'], hint: 'double' },
-            { word: '达到', components: ['辶', '大', '至', '刂'], hint: 'reach' },
-            { word: '本次', components: ['木', '一', '冫', '欠'], hint: 'this time' },
-            { word: '测试', components: ['氵', '则', '讠', '式'], hint: 'test' },
-            { word: '乘客', components: ['禾', '北', '宀', '各'], hint: 'passenger' },
-            { word: '紧张', components: ['纟', '臣', '又', '弓', '长'], hint: 'nervous' },
-            { word: '方向盘', components: ['方', '向', '舟', '皿'], hint: 'steering wheel' }
+            {
+                word: "报名", pinyin: "bào míng", english: "sign up",
+                chars: [
+                    { full: "报", layout: "lr", given: "扌", missing: "卩又" },
+                    { full: "名", layout: "tb", given: "夕", missing: "口" }
+                ]
+            },
+            {
+                word: "体验", pinyin: "tǐ yàn", english: "experience",
+                chars: [
+                    { full: "体", layout: "lr", given: "亻", missing: "本" },
+                    { full: "验", layout: "lr", given: "马", missing: "佥" }
+                ]
+            },
+            {
+                word: "乘坐", pinyin: "chéng zuò", english: "take (a ride)",
+                chars: [
+                    { full: "乘", layout: "tb", given: "禾", missing: "北" }, // 提取核心框架
+                    { full: "坐", layout: "tb", given: "从", missing: "土" }
+                ]
+            },
+            {
+                word: "全球", pinyin: "quán qiú", english: "global",
+                chars: [
+                    { full: "全", layout: "tb", given: "人", missing: "王" },
+                    { full: "球", layout: "lr", given: "王", missing: "求" }
+                ]
+            }
         ];
 
         let currentIndex = 0;
-        let isCombined = false;
 
-        // 渲染当前单词的部件
         function renderWord() {
             const currentItem = vocabData[currentIndex];
-            const compContainer = document.getElementById('components-display');
-            const gameArea = document.getElementById('game-area');
             
-            // 重置状态
-            gameArea.classList.remove('combined');
-            isCombined = false;
-            document.getElementById('combine-btn').innerText = "🧩 Combine";
+            // 渲染提示
+            document.getElementById('hint-en').innerText = currentItem.english;
+            document.getElementById('hint-py').innerText = currentItem.pinyin;
             
-            // 清空并渲染新部件
-            compContainer.innerHTML = '';
+            // 渲染结构格
+            const displayArea = document.getElementById('word-display');
+            displayArea.innerHTML = '';
             
-            // 打乱部件顺序，增加挑战性
-            let shuffledComponents = [...currentItem.components].sort(() => Math.random() - 0.5);
-            
-            shuffledComponents.forEach(comp => {
-                const card = document.createElement('div');
-                card.className = 'component-card';
-                card.innerText = comp;
-                compContainer.appendChild(card);
+            currentItem.chars.forEach(charObj => {
+                const charContainer = document.createElement('div');
+                charContainer.className = `char-container layout-${charObj.layout}`;
+                
+                const givenPart = document.createElement('div');
+                givenPart.className = 'part-box part-given';
+                givenPart.innerText = charObj.given;
+                
+                const missingPart = document.createElement('div');
+                missingPart.className = 'part-box part-missing';
+                missingPart.innerText = charObj.missing;
+                
+                // 按照不同结构组装部件
+                if (charObj.layout === 'lr') {
+                    charContainer.appendChild(givenPart);
+                    charContainer.appendChild(missingPart);
+                } else if (charObj.layout === 'tb') {
+                    charContainer.appendChild(givenPart);
+                    charContainer.appendChild(missingPart);
+                }
+                
+                displayArea.appendChild(charContainer);
             });
-            
-            // 预加载答案文本
-            document.getElementById('answer-word').innerText = currentItem.word;
-            document.getElementById('answer-hint').innerText = currentItem.hint;
-            
-            // 更新进度与按钮状态
+
+            // 隐藏完整答案
+            const fullWordEl = document.getElementById('full-word-display');
+            fullWordEl.innerText = currentItem.word;
+            fullWordEl.classList.remove('show');
+
+            // 更新状态
             document.getElementById('progress-text').innerText = `Word ${currentIndex + 1} / ${vocabData.length}`;
             document.getElementById('prev-btn').disabled = (currentIndex === 0);
             document.getElementById('next-btn').disabled = (currentIndex === vocabData.length - 1);
         }
 
-        // 触发组合动画
-        function combineComponents() {
-            const gameArea = document.getElementById('game-area');
-            const combineBtn = document.getElementById('combine-btn');
-            
-            if (!isCombined) {
-                gameArea.classList.add('combined');
-                combineBtn.innerText = "🔄 Reset";
-                isCombined = true;
-            } else {
-                gameArea.classList.remove('combined');
-                combineBtn.innerText = "🧩 Combine";
-                isCombined = false;
-            }
+        // 揭晓填空部分
+        function revealMissing() {
+            const containers = document.querySelectorAll('.char-container');
+            containers.forEach(container => {
+                container.classList.add('revealed');
+            });
         }
 
-        // 切换上下一个词
+        // 显示完整标准汉字（用于核对最终比例）
+        function showFullWord() {
+            revealMissing(); // 确保部件也被揭晓
+            document.getElementById('full-word-display').classList.add('show');
+        }
+
+        // 切换词汇
         function changeWord(direction) {
             currentIndex += direction;
             if (currentIndex < 0) currentIndex = 0;
