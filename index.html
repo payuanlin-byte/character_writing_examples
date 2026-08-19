@@ -40,7 +40,7 @@
         color: #555;
         font-size: 1.1em;
         line-height: 1.6;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
         background: #f8f9fa;
         padding: 20px;
         border-radius: 8px;
@@ -55,12 +55,30 @@
     }
 
     /* ================= 微信朋友圈 UI 样式 ================= */
+    .example-label {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #d35400;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+
     .wechat-post {
         display: flex;
         flex-direction: column;
         margin-bottom: 40px;
         border-bottom: 1px solid #ebeeef;
         padding-bottom: 30px;
+    }
+
+    /* 例子的特殊背景框 */
+    .post-example-bg {
+        background-color: #fafafa;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px dashed #dcdde1;
+        border-bottom: none; /* 因为外层有了，避免双线 */
     }
 
     .wechat-header {
@@ -214,7 +232,8 @@
     </div>
 
     <!-- 例子: 大卫 -->
-    <div class="wechat-post">
+    <div class="wechat-post post-example-bg">
+        <div class="example-label">📌 例子 (Example)</div>
         <div class="wechat-header">
             <div class="avatar">👱‍♂️</div>
             <div class="post-body">
@@ -223,7 +242,7 @@
                 <div class="post-time">26分钟前</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (例子 Example - Focus：好处与体验)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：好处与体验)：</h4>
                     <ul>
                         <li>安慰大卫，并告诉他你已经体验过了。</li>
                         <li>使用连词：<strong>不但……而且……</strong></li>
@@ -251,7 +270,7 @@
                 <div class="post-time">1小时前</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 1 - Focus：省钱与线路优化)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：省钱与线路优化)：</h4>
                     <ul>
                         <li>向她推荐无人驾驶出租车，并说明它怎么省钱省时。</li>
                         <li>使用连词：<strong>通过……（方式）</strong></li>
@@ -277,7 +296,7 @@
                 <div class="post-time">2小时前</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 2 - Focus：网络安全与隐患)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：网络安全与隐患)：</h4>
                     <ul>
                         <li>提醒他注意这种技术的网络安全隐患。</li>
                         <li>使用连词：<strong>如果……甚至可能……</strong></li>
@@ -303,7 +322,7 @@
                 <div class="post-time">3小时前</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 3 - Focus：事故责任认定)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：事故责任认定)：</h4>
                     <ul>
                         <li>反驳她的观点，指出发生车祸后的责任问题。</li>
                         <li>使用连词：<strong>然而……（表示转折）</strong></li>
@@ -329,7 +348,7 @@
                 <div class="post-time">昨天</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 4 - Focus：照顾老人与接送)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：照顾老人与接送)：</h4>
                     <ul>
                         <li>建议他考虑未来使用无人驾驶汽车来帮忙。</li>
                         <li>使用连词：<strong>只要……就……</strong></li>
@@ -355,7 +374,7 @@
                 <div class="post-time">昨天</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 5 - Focus：拼车与环境)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：拼车与环境)：</h4>
                     <ul>
                         <li>解释无人驾驶汽车（拼车功能）对环境的好处。</li>
                         <li>使用连词：<strong>这样一来……（表示结果）</strong></li>
@@ -381,7 +400,7 @@
                 <div class="post-time">2天前</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 6 - Focus：政府规范与测试)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：政府规范与测试)：</h4>
                     <ul>
                         <li>表达你觉得技术不够成熟，需要政府监管的看法。</li>
                         <li>使用连词：<strong>只有……才能……</strong></li>
@@ -407,7 +426,7 @@
                 <div class="post-time">2天前</div>
                 
                 <div class="mission-box">
-                    <h4>🎯 你的回复任务 (练习 7 - Focus：态度转变与初体验)：</h4>
+                    <h4>🎯 你的回复任务 (Focus：态度转变与初体验)：</h4>
                     <ul>
                         <li>分享你一开始的感受，以及后来态度为什么转变。</li>
                         <li>使用连词：<strong>虽然……但是……</strong></li>
