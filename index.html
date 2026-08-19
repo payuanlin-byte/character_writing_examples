@@ -599,7 +599,16 @@
         try {
             // 请求麦克风权限
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            
+            // 💡 修复点 1：自动检测浏览器支持的最佳格式
+            let options = {};
+            if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                options = { mimeType: 'audio/mp4' }; // 苹果 Safari 首选
+            } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                options = { mimeType: 'audio/webm' }; // 谷歌 Chrome 首选
+            }
+            
+            mediaRecorder = new MediaRecorder(stream, options);
             audioChunks = [];
 
             mediaRecorder.ondataavailable = event => {
@@ -609,12 +618,24 @@
             };
 
             mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                // 💡 修复点 2：使用浏览器实际录制的原生格式，不再强行写死 webm
+                const actualMimeType = mediaRecorder.mimeType || 'audio/webm';
+                const audioBlob = new Blob(audioChunks, { type: actualMimeType });
                 const audioUrl = URL.createObjectURL(audioBlob);
+                
+                // 💡 修复点 3：根据原生格式动态决定下载的后缀名
+                let extension = 'webm';
+                if (actualMimeType.includes('mp4') || actualMimeType.includes('m4a')) {
+                    extension = 'm4a'; // 苹果设备常见的音频后缀，兼容性极高
+                } else if (actualMimeType.includes('ogg')) {
+                    extension = 'ogg';
+                }
                 
                 // 设置播放器和下载链接
                 document.getElementById('audio-playback').src = audioUrl;
                 document.getElementById('audio-download').href = audioUrl;
+                // 让下载的文件名带上时间戳，防止多次录音文件同名覆盖
+                document.getElementById('audio-download').download = `Shadowing_Record_${new Date().getTime()}.${extension}`;
                 
                 // 显示播放和下载区域
                 document.getElementById('audio-playback-container').style.display = 'flex';
@@ -638,6 +659,26 @@
         } catch (err) {
             alert("Microphone access denied or not available. Please check your browser permissions.");
             console.error("Audio recording error: ", err);
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            
+            // 停止所有音频轨道，释放麦克风设备，避免网页一直显示录音小红点
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+            // 恢复 UI 状态
+            const startBtn = document.getElementById('btn-start-record');
+            const stopBtn = document.getElementById('btn-stop-record');
+            
+            startBtn.disabled = false;
+            startBtn.style.backgroundColor = '#e74c3c';
+            startBtn.innerText = '🎤 Start Recording';
+            
+            stopBtn.disabled = true;
+            stopBtn.style.backgroundColor = '#95a5a6';
         }
     }
 
