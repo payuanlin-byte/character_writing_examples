@@ -1,93 +1,453 @@
-// ==========================================
-    // Tab 9: WeChat Simulator 逻辑
-    // ==========================================
-    const wechatTasks = [
-        {
-            avatar: "👨🏼‍🦱", name: "大卫",
-            post: "听说深圳现在到处都是无人驾驶汽车了，真的安全吗？好想去试试，但又有点害怕！😨",
-            mission: "• 安慰大卫，并告诉他你已经体验过了。<br>• 使用连词：<strong>不但……而且……</strong><br>• 必须包含词汇：<strong>体验 / 平稳 / 缓解 / 拥堵</strong>",
-            scaffold: "大卫别怕！我上周刚去 [体][验] 了一次。车子开得非常 [平][稳]。这种车 [不][但] 能节约时间，[而][且] 有助于 [缓][解] 城市道路的 [拥][堵]。下次我们一起去！"
-        },
-        {
-            avatar: "👩🏻", name: "小丽",
-            post: "每天打车上下班太贵了，可是坐公交车又好慢，真是烦死我了！😩💸",
-            mission: "• 向她推荐无人驾驶出租车，并说明它怎么省钱省时。<br>• 使用连词：<strong>通过……（方式）</strong><br>• 必须包含词汇：<strong>软件 / 优化 / 降低 / 费用</strong>",
-            scaffold: "你可以试试无人驾驶出租车！它可以 [通][过] 电脑 [软][件] 根据乘客的需要 [优][化] 线路。这样能大幅度 [降][低] 乘车 [费][用]，比打车便宜多了！"
-        },
-        {
-            avatar: "🧑🏽‍🦱", name: "汤姆",
-            post: "科技太牛了！无人驾驶汽车连司机都不需要，完全靠电脑自己开，太酷了吧！😎🚗",
-            mission: "• 提醒他注意这种技术的网络安全隐患。<br>• 使用连词：<strong>如果……甚至可能……</strong><br>• 必须包含词汇：<strong>黑客 / 入侵 / 交通事故</strong>",
-            scaffold: "是很酷，但是也有隐患。[如][果] 汽车的控制系统被 [黑][客] [入][侵]，他们不仅能改变路线，[甚][至][可][能] 会故意制造严重的 [交][通][事][故]！"
-        },
-        {
-            avatar: "👱🏼‍♀️", name: "安娜",
-            post: "我觉得未来的城市就应该全是无人驾驶汽车，电脑比人聪明多了，这样就不会有车祸了！✨",
-            mission: "• 反驳她的观点，指出发生车祸后的责任问题。<br>• 使用连词：<strong>然而……（表示转折）</strong><br>• 必须包含词汇：<strong>碰撞 / 责任 / 认定 / 赔偿</strong>",
-            scaffold: "[然][而]，这项技术还不够成熟。如果发生了 [碰][撞]，[责][任] 很难 [认][定]。如果是电脑的问题，受害者可能会面临拿不到 [赔][偿] 的现象。"
-        },
-        {
-            avatar: "👨🏻‍🦰", name: "马克",
-            post: "我爸爸年纪大了，眼睛不太好，不能自己开车去医院了，我又要上班，怎么办啊？🏥",
-            mission: "• 建议他考虑未来使用无人驾驶汽车来帮忙。<br>• 使用连词：<strong>只要……就……</strong><br>• 必须包含词汇：<strong>代替 / 接送 / 障碍物</strong>",
-            scaffold: "别担心，将来你可以让无人驾驶汽车 [代][替] 你去 [接][送] 父亲。[只][要] 设定好路线，车子 [就] 能安全到达，并且避开 [障][碍][物]。"
-        },
-        {
-            avatar: "👧🏻", name: "莉莉",
-            post: "现在的城市空气污染太严重了，路上全是车，到处都是尾气，不想出门了！😷💨",
-            mission: "• 解释无人驾驶汽车（拼车功能）对环境的好处。<br>• 使用连词：<strong>这样一来……（表示结果）</strong><br>• 必须包含词汇：<strong>需求 / 现象 / 减少</strong>",
-            scaffold: "无人驾驶也许能缓解这个 [现][象]。它可以根据大家的 [需][求] 安排拼车。[这][样][一][来]，路上的车少了，不仅能缓解拥堵，还能 [减][少] 污染！"
-        },
-        {
-            avatar: "🧔🏻‍♂️", name: "杰克",
-            post: "我觉得无人驾驶技术已经很完美了，政府应该明天就在全国推广！🚀",
-            mission: "• 表达你觉得技术不够成熟，需要政府监管的看法。<br>• 使用连词：<strong>只有……才能……</strong><br>• 必须包含词汇：<strong>制定 / 严格 / 测试 / 生命安全</strong>",
-            scaffold: "我不赞同。政府必须在推行前 [制][定] 更 [严][格] 的法律法规。[只][有] 进行更多的安全 [测][试]，[才][能] 保护大家的 [生][命][安][全]。"
-        },
-        {
-            avatar: "👦🏼", name: "迈克",
-            post: "你们敢坐没有方向盘的车吗？感觉好像把命交给了机器人，有点不敢上车。🤖",
-            mission: "• 分享你一开始的感受，以及后来态度为什么转变。<br>• 使用连词：<strong>虽然……但是……</strong><br>• 必须包含词汇：<strong>紧张 / 适应 / 神奇</strong>",
-            scaffold: "[虽][然] 我一开始也很 [紧][张]，[但][是] 很快就 [适][应] 了。看着方向盘自己转动，感觉很 [神][奇]。车开得特别平稳，你一定要试试！"
-        }
-    ];
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 9 - 朋友圈神回复模拟器</title>
+<style>
+    body {
+        background-color: #f0f2f5;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", Tahoma, Simsun, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+        margin: 0;
+        color: #333;
+    }
 
-    function renderWeChatFeed() {
-        const container = document.getElementById('wechat-feed-container');
-        container.innerHTML = '';
-        
-        wechatTasks.forEach((task, index) => {
-            const postHTML = `
-                <div class="wechat-post">
-                    <div class="wechat-avatar">${task.avatar}</div>
-                    <div class="wechat-main">
-                        <div class="wechat-name">${task.name}</div>
-                        <div class="wechat-content">${task.post}</div>
-                        <div class="wechat-mission">
-                            <strong>🎯 你的回复任务：</strong><br>${task.mission}
-                        </div>
-                        <div class="wechat-comment-box">
-                            <textarea class="wechat-textarea" placeholder="评论 (Comment)..."></textarea>
-                            <div class="wechat-actions">
-                                <button class="wechat-btn btn-hint" onclick="toggleWechatHint(${index})">💡 没思路？点这里</button>
-                                <button class="wechat-btn btn-send" onclick="alert('发送成功！请把这句话大声朗读一遍！')">发送 (Send)</button>
-                            </div>
-                            <div class="wechat-scaffold" id="wechat-scaffold-${index}">
-                                <strong>✍️ 抄写并填空（读出声）：</strong><br>${task.scaffold}
-                            </div>
-                        </div>
+    .app-container {
+        background-color: #ffffff;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        border-radius: 12px;
+        padding: 40px;
+        box-sizing: border-box;
+    }
+
+    .step-title {
+        color: #07c160; /* 微信绿 */
+        border-bottom: 2px solid #e2f6e9;
+        padding-bottom: 10px;
+        font-size: 1.8em;
+        margin-top: 0;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .intro-text {
+        color: #555;
+        font-size: 1.1em;
+        line-height: 1.6;
+        margin-bottom: 30px;
+        text-align: center;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    /* ================= 微信朋友圈 UI 样式 ================= */
+    .wechat-post {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 40px;
+        border-bottom: 1px solid #ebeeef;
+        padding-bottom: 30px;
+    }
+
+    .wechat-header {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 6px;
+        background-color: #e1e1e1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 28px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .post-body {
+        flex: 1;
+    }
+
+    .nickname {
+        color: #576b95; /* 微信标志性深蓝色 */
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-bottom: 6px;
+    }
+
+    .post-content {
+        font-size: 1.15em;
+        line-height: 1.5;
+        color: #111;
+        margin-bottom: 10px;
+    }
+
+    .post-time {
+        font-size: 0.85em;
+        color: #b2b2b2;
+        margin-bottom: 15px;
+    }
+
+    /* ================= 任务提示框 ================= */
+    .mission-box {
+        background-color: #fff9e6;
+        border-left: 4px solid #ffc107;
+        padding: 15px 20px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .mission-box h4 {
+        margin: 0 0 10px 0;
+        color: #d35400;
+        font-size: 1.05em;
+    }
+
+    .mission-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #555;
+        font-size: 1em;
+        line-height: 1.6;
+    }
+
+    .mission-box li strong {
+        color: #c0392b;
+    }
+
+    /* ================= 评论回复区 (输入脚手架) ================= */
+    .reply-area {
+        background-color: #f3f3f5; /* 微信评论区灰底色 */
+        border-radius: 6px;
+        padding: 15px;
+        position: relative;
+    }
+    
+    /* 评论区小三角 */
+    .reply-area::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 20px;
+        border-width: 0 8px 8px 8px;
+        border-style: solid;
+        border-color: transparent transparent #f3f3f5 transparent;
+    }
+
+    .reply-header {
+        font-weight: bold;
+        color: #576b95;
+        margin-bottom: 10px;
+        font-size: 0.95em;
+    }
+
+    .reply-text {
+        font-family: 'KaiTi', 'STKaiti', '楷体', serif;
+        font-size: 1.3em;
+        line-height: 2;
+        color: #333;
+    }
+
+    /* 挖空输入框样式 */
+    .char-input {
+        width: 1.6em;
+        height: 1.6em;
+        font-family: 'KaiTi', 'STKaiti', '楷体', serif;
+        font-size: 1em;
+        text-align: center;
+        border: 1px solid #1976D2;
+        border-radius: 4px;
+        background-color: #fff;
+        color: #1976D2;
+        font-weight: bold;
+        margin: 0 2px;
+        padding: 0;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .char-input:focus {
+        border-color: #FF9800;
+        background-color: #FFFDE7;
+        box-shadow: 0 0 5px rgba(255,152,0,0.4);
+    }
+    
+    /* 正确填入后的轻微反馈 */
+    .char-input:not(:placeholder-shown) {
+        border-color: #4CAF50;
+        color: #2E7D32;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2 class="step-title">💬 微信朋友圈“回复” (WeChat Comment Simulator)</h2>
+    <div class="intro-text">
+        <strong>【任务说明】</strong> 你的朋友们在朋友圈讨论“无人驾驶汽车”。请你根据任务提示，在横线上填入正确的汉字，完成你的“神回复”。完成后，请把整段话大声朗读一遍！
+    </div>
+
+    <!-- 练习 0: 示例 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👱‍♂️</div>
+            <div class="post-body">
+                <div class="nickname">大卫 (David)</div>
+                <div class="post-content">听说深圳现在到处都是无人驾驶汽车了，真的安全吗？好想去试试，但又有点害怕！😨</div>
+                <div class="post-time">26分钟前</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Example)：</h4>
+                    <ul>
+                        <li>安慰大卫，并告诉他你已经体验过了。</li>
+                        <li>使用连词：<strong>不但……而且……</strong></li>
+                        <li>必须包含词汇：<strong>体验 / 平稳 / 缓解 / 拥堵</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        大卫别怕！我上周刚去 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 了一次。车子开得非常 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">。这种车 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 能节约时间，<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 有助于 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 城市道路的 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">。下次我们一起去！
                     </div>
                 </div>
-            `;
-            container.innerHTML += postHTML;
-        });
-    }
+            </div>
+        </div>
+    </div>
 
-    function toggleWechatHint(index) {
-        const scaffoldBox = document.getElementById(`wechat-scaffold-${index}`);
-        if (scaffoldBox.style.display === 'block') {
-            scaffoldBox.style.display = 'none';
-        } else {
-            scaffoldBox.style.display = 'block';
-        }
-    }
+    <!-- 练习 1 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👩🏻</div>
+            <div class="post-body">
+                <div class="nickname">小丽 (Lily)</div>
+                <div class="post-content">每天打车上下班太贵了，可是坐公交车又好慢，真是烦死我了！😩💸</div>
+                <div class="post-time">1小时前</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 省钱与线路优化)：</h4>
+                    <ul>
+                        <li>向她推荐无人驾驶出租车，并说明它怎么省钱省时。</li>
+                        <li>使用连词：<strong>通过……（方式）</strong></li>
+                        <li>必须包含词汇：<strong>软件 / 优化 / 降低 / 费用</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        你可以试试无人驾驶出租车！它可以 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 电脑 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 根据你的需求 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 线路。这样能大幅度 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 乘车 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，比打车便宜多了，非常方便！
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习 2 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">🧑🏽‍🦱</div>
+            <div class="post-body">
+                <div class="nickname">汤姆 (Tom)</div>
+                <div class="post-content">科技太牛了！无人驾驶汽车连司机都不需要，完全靠电脑自己开，太酷了吧！😎🚗</div>
+                <div class="post-time">2小时前</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 网络安全与隐患)：</h4>
+                    <ul>
+                        <li>提醒他注意这种技术的网络安全隐患。</li>
+                        <li>使用连词：<strong>如果……甚至可能……</strong></li>
+                        <li>必须包含词汇：<strong>黑客 / 入侵 / 交通事故</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        是很酷，但是也有网络安全隐患。<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 被 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 了控制系统，他们不仅能随便改变路线，<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 故意制造严重的 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">！还是要注意安全。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习 3 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👩🏼‍🦰</div>
+            <div class="post-body">
+                <div class="nickname">安娜 (Anna)</div>
+                <div class="post-content">我觉得未来的城市就应该全是无人驾驶汽车，电脑比人聪明多了，这样就不会有车祸了！✨</div>
+                <div class="post-time">3小时前</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 事故责任认定)：</h4>
+                    <ul>
+                        <li>反驳她的观点，指出发生车祸后的责任问题。</li>
+                        <li>使用连词：<strong>然而……（表示转折）</strong></li>
+                        <li>必须包含词汇：<strong>碰撞 / 责任 / 认定 / 赔偿</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，无人驾驶技术现在还不够成熟。万一发生了 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 到底算谁的很难 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">。如果是系统的错，受害者可能会面临很难拿到 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 的问题。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习 4 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👨🏻‍🦳</div>
+            <div class="post-body">
+                <div class="nickname">马克 (Mark)</div>
+                <div class="post-content">我爸爸年纪大了，眼睛不太好，不能自己开车去医院了，我又要上班，怎么办啊？🏥</div>
+                <div class="post-time">昨天</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 照顾老人与接送)：</h4>
+                    <ul>
+                        <li>建议他考虑未来使用无人驾驶汽车来帮忙。</li>
+                        <li>使用连词：<strong>只要……就……</strong></li>
+                        <li>必须包含词汇：<strong>代替 / 接送 / 障碍物</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        别担心，将来你可以让无人驾驶汽车 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 你去 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 父亲。<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 用手机设定好路线，车子 <input type="text" maxlength="1" class="char-input"> 能安全到达。它可以避开我看不到的 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，很让人放心。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习 5 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👧🏻</div>
+            <div class="post-body">
+                <div class="nickname">莉莉 (Lily)</div>
+                <div class="post-content">现在的城市空气污染太严重了，路上全是车，到处都是尾气，不想出门了！😷💨</div>
+                <div class="post-time">昨天</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 拼车与环境)：</h4>
+                    <ul>
+                        <li>解释无人驾驶汽车（拼车功能）对环境的好处。</li>
+                        <li>使用连词：<strong>这样一来……（表示结果）</strong></li>
+                        <li>必须包含词汇：<strong>需求 / 现象 / 减少</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        无人驾驶技术或许能改善这个 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">。它可以根据大家的 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 安排更多人一起拼车，<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，路上的车少了，不仅能缓解拥堵，还能有效 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 空气污染！
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习 6 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👨🏽‍💼</div>
+            <div class="post-body">
+                <div class="nickname">杰克 (Jack)</div>
+                <div class="post-content">我觉得无人驾驶技术已经很完美了，政府应该明天就在全国推广！🚀</div>
+                <div class="post-time">2天前</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 政府规范与测试)：</h4>
+                    <ul>
+                        <li>表达你觉得技术不够成熟，需要政府监管的看法。</li>
+                        <li>使用连词：<strong>只有……才能……</strong></li>
+                        <li>必须包含词汇：<strong>制定 / 严格 / 测试 / 生命安全</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        我不赞同，目前这项技术还不够成熟。政府必须 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 更 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 的法律法规。<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 进行更多的安全 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 真正保护路人的 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习 7 -->
+    <div class="wechat-post">
+        <div class="wechat-header">
+            <div class="avatar">👦🏼</div>
+            <div class="post-body">
+                <div class="nickname">迈克 (Mike)</div>
+                <div class="post-content">你们敢坐没有方向盘的车吗？感觉好像把命交给了机器人，有点不敢上车。🤖</div>
+                <div class="post-time">2天前</div>
+                
+                <div class="mission-box">
+                    <h4>🎯 你的回复任务 (Focus: 态度转变与初体验)：</h4>
+                    <ul>
+                        <li>分享你一开始的感受，以及后来态度为什么转变。</li>
+                        <li>使用连词：<strong>虽然……但是……</strong></li>
+                        <li>必须包含词汇：<strong>紧张 / 适应 / 神奇</strong></li>
+                    </ul>
+                </div>
+
+                <div class="reply-area">
+                    <div class="reply-header">✍️ 你的回复：</div>
+                    <div class="reply-text">
+                        <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 我一开始当乘客的时候也很 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">，<input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 上车后很快就 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input"> 了。看着方向盘自己转动，感觉非常 <input type="text" maxlength="1" class="char-input"><input type="text" maxlength="1" class="char-input">。车子开得特别稳，你下次一定要去试试！
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 自动跳格脚本：输入一个汉字后自动跳到下一个输入框
+    document.querySelectorAll('.char-input').forEach((input, index, inputs) => {
+        input.addEventListener('input', function() {
+            if (this.value.length === this.maxLength) {
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            }
+        });
+        
+        // 支持按 Backspace 键回退到上一个格子
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value.length === 0) {
+                if (index > 0) {
+                    inputs[index - 1].focus();
+                    inputs[index - 1].value = ''; // 清空上一个格子的内容
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
