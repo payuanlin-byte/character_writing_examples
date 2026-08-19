@@ -378,18 +378,21 @@
     <!-- ================= TAB 8: Fluency Prompter ================= -->
     <div id="tab8" class="tab-content">
         <div class="fluency-wrapper">
-            <h2 class="step-title" style="border-bottom: none; color: #ecf0f1; font-size: 2.2rem; margin-top: 0;">⏱️ Fluency Prompter (影子跟读)</h2>
-            <p style="color: #bdc3c7; font-size: 1.1em; margin-top: -10px; margin-bottom: 30px;">请跟着屏幕上出现的汉字同步朗读，注意停顿和连词的语气。</p>
+            <h2 class="step-title" style="border-bottom: none; color: #ecf0f1; font-size: 2.2rem; margin-top: 0;">⏱️ Fluency Prompter (Shadowing)</h2>
+            <p style="color: #bdc3c7; font-size: 1.1em; margin-top: -10px; margin-bottom: 30px;">
+                Please read aloud along with the Chinese characters on the screen. Pay attention to pauses and the tone of conjunctions.
+            </p>
 
+            <!-- 提词器控制区 -->
             <div class="fluency-header-controls">
                 <select id="fluency-script-select" class="fluency-select" onchange="resetTypewriter()">
-                    <option value="script1">课文跟读：无人驾驶汽车 (文本一)</option>
+                    <option value="script1">Reading: Autonomous Vehicles (Text 1)</option>
                 </select>
 
                 <select id="fluency-speed-select" class="fluency-select">
-                    <option value="400">慢速 (适合初练 100字/分)</option>
-                    <option value="250" selected>正常 (建议语速 150字/分)</option>
-                    <option value="150">快速 (考试冲刺 200字/分)</option>
+                    <option value="400">Slow (Beginner: 100 chars/min)</option>
+                    <option value="250" selected>Normal (Suggested: 150 chars/min)</option>
+                    <option value="150">Fast (Exam Prep: 200 chars/min)</option>
                 </select>
 
                 <button class="fluency-btn btn-play" onclick="startTypewriter()">▶️ Start</button>
@@ -397,6 +400,18 @@
                 <button class="fluency-btn btn-reset" onclick="resetTypewriter()">🔄 Reset</button>
             </div>
 
+            <!-- 录音控制区 -->
+            <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center; background: #34495e; padding: 15px 25px; border-radius: 8px; width: 100%; max-width: 900px; box-sizing: border-box; flex-wrap: wrap;">
+                <button class="fluency-btn" id="btn-start-record" onclick="startRecording()" style="background-color: #e74c3c;">🎤 Start Recording</button>
+                <button class="fluency-btn" id="btn-stop-record" onclick="stopRecording()" style="background-color: #95a5a6;" disabled>⏹️ Stop</button>
+                
+                <div id="audio-playback-container" style="display: none; align-items: center; gap: 15px; margin-left: auto;">
+                    <audio id="audio-playback" controls style="height: 40px;"></audio>
+                    <a id="audio-download" class="fluency-btn" style="background-color: #3498db; text-decoration: none; color: white; display: inline-block; padding: 10px 15px;" download="my_reading.webm">💾 Download</a>
+                </div>
+            </div>
+
+            <!-- 提词器显示区 -->
             <div class="typewriter-container">
                 <div class="typewriter-text">
                     <span id="typewriter-output"></span><span class="cursor" id="typewriter-cursor"></span>
@@ -523,7 +538,7 @@
     function changeFadingWord(dir) { fadingCurrentIndex += dir; if(fadingCurrentIndex<0) fadingCurrentIndex=0; if(fadingCurrentIndex>=fadingVocabData.length) fadingCurrentIndex=fadingVocabData.length-1; renderFadingWord(); }
 
     // ==========================================
-    // Tab 8: 朗读流利度 (Fluency Typewriter) 逻辑
+    // Tab 8: 朗读流利度 (Fluency Typewriter) & 录音逻辑
     // ==========================================
     const fluencyScripts = {
         script1: `无人驾驶汽车\n\n大家好！欢迎各位收看我的播客。\n\n前不久，我报名参加体验乘坐新加坡无人驾驶汽车，感觉真是太棒了，今天我就来和大家聊聊无人驾驶汽车。\n\n这是全球首次向乘客开放的无人驾驶汽车，报名参与体验的人数比一个月前增加了一倍，达到1000人左右。作为本次测试的乘客之一，一开始我很紧张，看着方向盘自己转动时，这种感觉太神奇了，就像有个鬼在开车一样！但很快我就适应了，车子开得很稳，一些我看不到的障碍物，车子能看到，让我觉得可以信任它。我想以后父亲老了，无人驾驶汽车可以代替我接送父亲。\n\n那么，无人驾驶汽车的发明，除了能改变人们对城市环境的体验，还有什么好处呢？首先，无人驾驶汽车有助于缓解道路拥堵的现象，还能大幅度降低乘坐出租车的费用，而且价格比坐公交车还便宜。\n\n其次，无人驾驶出租车可以通过软件根据乘客的需求优化线路。这样一来，不但能节约乘客的乘车时间，也能让更多的乘客一起乘坐，当然就省钱啦！\n\n总的来说，无人驾驶汽车会给我们的生活带来很多方便，而且还会节省时间，也更安全。你会去新加坡体验无人驾驶出租车吗？\n\n欢迎大家留言和我分享你对无人驾驶汽车的看法。`
@@ -533,6 +548,11 @@
     let typeIndex = 0;
     let isTyping = false;
 
+    // 录音相关变量
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // ================= 提词器功能 =================
     function startTypewriter() {
         if (isTyping) return;
         
@@ -572,6 +592,73 @@
         typeIndex = 0;
         document.getElementById('typewriter-output').textContent = '';
         document.getElementById('typewriter-cursor').style.display = 'inline-block';
+    }
+
+    // ================= 录音功能 =================
+    async function startRecording() {
+        try {
+            // 请求麦克风权限
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                // 设置播放器和下载链接
+                document.getElementById('audio-playback').src = audioUrl;
+                document.getElementById('audio-download').href = audioUrl;
+                
+                // 显示播放和下载区域
+                document.getElementById('audio-playback-container').style.display = 'flex';
+            };
+
+            mediaRecorder.start();
+            
+            // 更新 UI 状态
+            const startBtn = document.getElementById('btn-start-record');
+            const stopBtn = document.getElementById('btn-stop-record');
+            
+            startBtn.disabled = true;
+            startBtn.style.backgroundColor = '#7f8c8d';
+            startBtn.innerText = '🔴 Recording...';
+            
+            stopBtn.disabled = false;
+            stopBtn.style.backgroundColor = '#e67e22';
+            
+            document.getElementById('audio-playback-container').style.display = 'none';
+            
+        } catch (err) {
+            alert("Microphone access denied or not available. Please check your browser permissions.");
+            console.error("Audio recording error: ", err);
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            
+            // 停止所有音频轨道，释放麦克风设备
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+            // 恢复 UI 状态
+            const startBtn = document.getElementById('btn-start-record');
+            const stopBtn = document.getElementById('btn-stop-record');
+            
+            startBtn.disabled = false;
+            startBtn.style.backgroundColor = '#e74c3c';
+            startBtn.innerText = '🎤 Start Recording';
+            
+            stopBtn.disabled = true;
+            stopBtn.style.backgroundColor = '#95a5a6';
+        }
     }
 
     // ==========================================
